@@ -24,8 +24,10 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Group;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.chart.PieChart;
 import javafx.scene.control.Label;
@@ -48,7 +50,8 @@ import org.json.JSONObject;
  */
 public class MainPageController implements Initializable {
     
-    private Label caption;
+    private int timeOut = 0;
+    private boolean viewingCountry = false;
     
     @FXML
     private Label newCase, newDeath, newRecovered, 
@@ -92,7 +95,23 @@ public class MainPageController implements Initializable {
             row.setOnMouseClicked(event -> {
                 if (event.getClickCount() == 2 && (! row.isEmpty()) ) {
                     CountryData rowData = row.getItem();
-                    System.out.println("Double click on: "+ rowData.getSlug());
+                    if (!viewingCountry) {
+                        try {
+                            Stage addNew = new Stage();
+                            FXMLLoader loader = new FXMLLoader(getClass().getResource("CountryView.fxml"));
+                            Parent root = loader.load();
+                            
+                            CountryViewController controller = loader.getController();
+                            //Pass whatever data you want. You can have multiple method calls here
+                            controller.setupData(rowData);
+                            Scene addAssignment = new Scene(root);
+                            addNew.setScene(addAssignment);
+                            addNew.setTitle("Data for " + rowData.getCountryName());
+                            addNew.show();
+                        } catch (IOException ex) {
+                            Logger.getLogger(MainPageController.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    }
                 }
             });
             return row ;
@@ -104,10 +123,12 @@ public class MainPageController implements Initializable {
     }
     
     private void getGlobalData (int forced) {
-        String result = FileManagement.getFromFile("global");
+        String result ="";
         final String url = "https://api.covid19api.com/summary";
         try {
+            result = FileManagement.getFromFile("global", 0);
             if (result.equals("") || result == "" || forced == 1) {
+                System.out.println("Getting data from Server");
                 URL website = new URL(url);
                 HttpURLConnection conn = (HttpURLConnection) website.openConnection();
                 conn.setRequestMethod("GET");
@@ -132,12 +153,15 @@ public class MainPageController implements Initializable {
                     result = sb.toString(); 
                     FileManagement.saveIntoFile(result, "global");
                 }
+            }else {
+                System.out.println("Using History Data");
             }
         } catch (MalformedURLException ex) {
             //remember to change to custom error handling
             System.out.println("Access point to the API has been changed. Searching for data history in repository");
         } catch (IOException | RuntimeException ex) {
             System.out.println("Unable to connect with the API's server, searching for history data in directory");
+            result = FileManagement.getFromFile("global", 1);
         }finally {
             if (!(result.equals("") || result == "")) {
                 setupMainPage(result);
@@ -170,16 +194,22 @@ public class MainPageController implements Initializable {
             //calculating active cases
             globalStats[4] = globalStats[3] - globalStats[5] - globalStats[6];
 
-            drawGraph(Arrays.copyOfRange(globalStats, 0, 3), Arrays.copyOfRange(globalLegends, 0, 3), newChart);
-            drawGraph(Arrays.copyOfRange(globalStats, 4, 7), Arrays.copyOfRange(globalLegends, 4, 7), totalChart);
+            drawPieGraph(Arrays.copyOfRange(globalStats, 0, 3), Arrays.copyOfRange(globalLegends, 0, 3), newChart, mainPane);
+            drawPieGraph(Arrays.copyOfRange(globalStats, 4, 7), Arrays.copyOfRange(globalLegends, 4, 7), totalChart, mainPane);
             updateGlobalCounter(globalStats);
+            timeOut = 0;
         }catch (JSONException ex) {
             System.out.println("File Integrity changed, requesting new data from server");
-            getGlobalData(1);
+            if (timeOut < 4){
+                getGlobalData(1);
+                timeOut++;
+            }else {
+                System.out.println("Couldn't load API data and there's no history data for the selected Item.");
+            }
         }
     }
     
-    private void drawGraph (int data[], String legends[], Pane chartLocation) {
+    public static void drawPieGraph (int data[], String legends[], Pane chartLocation, AnchorPane mainPane) {
         ObservableList dataList = FXCollections.observableArrayList();
         for (int x = 0; x< data.length;x++) {
             dataList.add(new PieChart.Data(legends[x], data[x]));
@@ -187,10 +217,10 @@ public class MainPageController implements Initializable {
         
         final PieChart chart = new PieChart(dataList);
         chart.setStyle("-fx-padding:10px;-fx-insets:0px;");
-
+        final Label caption = new Label("");
         chart.getData().forEach((dataValue) -> {
             dataValue.getNode().addEventHandler(MouseEvent.MOUSE_PRESSED, (MouseEvent e) -> {
-                caption = new Label("");
+                
                 caption.setTextFill(Color.BLUE);
                 caption.setStyle("-fx-font: 24 arial;");
                 caption.setTranslateX(e.getSceneX() + 10);
