@@ -29,10 +29,15 @@ import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.chart.PieChart;
 import javafx.scene.control.Label;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableRow;
+import javafx.scene.control.TableView;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
+import javafx.stage.Stage;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -42,11 +47,27 @@ import org.json.JSONObject;
  */
 public class MainPageController implements Initializable {
     
-    @FXML
-    private Label newCase, newDeath, newRecovered, totalCase, totalDeath, totalRecovered;
+    private Label caption;
+
     
     @FXML
-    private AnchorPane newChart, totalChart;
+    private Label newCase, newDeath, newRecovered, 
+                    totalCase, activeCase, totalDeath, totalRecovered;
+    
+    @FXML
+    private AnchorPane mainPane, newChart, totalChart;
+    
+    @FXML
+    private TableView countryData;
+    
+    @FXML private TableColumn<CountryData, Integer> CountryName;
+    @FXML private TableColumn<CountryData, Integer> NewCases;
+    @FXML private TableColumn<CountryData, Integer> NewDeaths;
+    @FXML private TableColumn<CountryData, Integer> NewRecovered;
+    @FXML private TableColumn<CountryData, Integer> ActiveCases;
+    @FXML private TableColumn<CountryData, Integer> TotalCases;
+    @FXML private TableColumn<CountryData, Integer> TotalDeaths;
+    @FXML private TableColumn<CountryData, Integer> TotalRecovered;
     
     @FXML
     private void handleButtonAction(ActionEvent event) {
@@ -55,7 +76,32 @@ public class MainPageController implements Initializable {
     }
     
     @Override
-    public void initialize(URL url, ResourceBundle rb) {
+    public void initialize(URL url, ResourceBundle rb) {        
+        CountryName.setCellValueFactory(new PropertyValueFactory<CountryData, Integer>("CountryName"));
+        NewCases.setCellValueFactory(new PropertyValueFactory<CountryData, Integer>("NewCases"));
+        NewDeaths.setCellValueFactory(new PropertyValueFactory<CountryData, Integer>("NewDeaths"));
+        NewRecovered.setCellValueFactory(new PropertyValueFactory<CountryData, Integer>("NewRecovered"));
+        ActiveCases.setCellValueFactory(new PropertyValueFactory<CountryData, Integer>("ActiveCases"));
+        TotalCases.setCellValueFactory(new PropertyValueFactory<CountryData, Integer>("TotalCases"));
+        TotalDeaths.setCellValueFactory(new PropertyValueFactory<CountryData, Integer>("TotalDeaths"));
+        TotalRecovered.setCellValueFactory(new PropertyValueFactory<CountryData, Integer>("TotalRecovered"));
+        
+        countryData.setRowFactory(tv -> {
+            TableRow<CountryData> row = new TableRow<>();
+            row.setOnMouseClicked(event -> {
+                if (event.getClickCount() == 2 && (! row.isEmpty()) ) {
+                    CountryData rowData = row.getItem();
+                    System.out.println("Double click on: "+ rowData.getCountryName());
+                }
+            });
+            return row ;
+        });
+        
+        countryData.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        getAPIData();
+    }
+    
+    private void getAPIData () {
         try {
             URL website = new URL("https://api.covid19api.com/summary");
             HttpURLConnection conn = (HttpURLConnection) website.openConnection();
@@ -65,6 +111,7 @@ public class MainPageController implements Initializable {
             
             int responseCode = conn.getResponseCode(); //200 means ok
             if (responseCode != 200) {
+                //remember to make a new custom error window for this refer last project
                 throw new RuntimeException("HttpResponseCode: " + responseCode);
             }else {
                 BufferedReader r  = new BufferedReader(new InputStreamReader(conn.getInputStream(), Charset.forName("UTF-8")));
@@ -78,23 +125,31 @@ public class MainPageController implements Initializable {
                 String result = sb.toString();
                 
                 JSONObject parsedJSON = new JSONObject(result);
-                JSONObject arr = (JSONObject) parsedJSON.get("Global");
+                JSONObject globalData = (JSONObject) parsedJSON.get("Global");
+                JSONArray countriesData = parsedJSON.getJSONArray("Countries");
+                setupCountryData(countriesData);
                 
+                String globalLegends[] = {"New Confirmed", "New Deaths", "New Recovered", "Total Confirmed", "Total Active", "Total Deaths", "Total Recovered"};
+                
+                //since everthing in JSON is string, we'll need to get the string one by one RIP lel.
                 int globalStats[] = { 
-                                        Integer.parseInt(arr.get("NewConfirmed").toString()),
-                                        Integer.parseInt(arr.get("NewDeaths").toString()),
-                                        Integer.parseInt(arr.get("NewRecovered").toString()),
-                                        Integer.parseInt(arr.get("TotalConfirmed").toString()),
-                                        Integer.parseInt(arr.get("TotalDeaths").toString()),
-                                        Integer.parseInt(arr.get("TotalRecovered").toString())
+                                        Integer.parseInt(globalData.get("NewConfirmed").toString()),
+                                        Integer.parseInt(globalData.get("NewDeaths").toString()),
+                                        Integer.parseInt(globalData.get("NewRecovered").toString()),
+                                        Integer.parseInt(globalData.get("TotalConfirmed").toString()),
+                                        0,
+                                        Integer.parseInt(globalData.get("TotalDeaths").toString()),
+                                        Integer.parseInt(globalData.get("TotalRecovered").toString())
                                         };
-                String globalLegends[] = {"New Confirmed", "New Deaths", "New Recovered", "Total Confirmed", "Total Deaths", "Total Recovered"};
+                   //calculating active cases
+                globalStats[4] = globalStats[3] - globalStats[5] - globalStats[6];
                 
                 drawGraph(Arrays.copyOfRange(globalStats, 0, 3), Arrays.copyOfRange(globalLegends, 0, 3), newChart);
-                drawGraph(Arrays.copyOfRange(globalStats, 3, 6), Arrays.copyOfRange(globalLegends, 3, 6), totalChart);
-                updateCounter(globalStats);
+                drawGraph(Arrays.copyOfRange(globalStats, 4, 7), Arrays.copyOfRange(globalLegends, 4, 7), totalChart);
+                updateGlobalCounter(globalStats);
             }
         } catch (MalformedURLException ex) {
+            //remember to change to custom error handling
             Logger.getLogger(MainPageController.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
             Logger.getLogger(MainPageController.class.getName()).log(Level.SEVERE, null, ex);
@@ -109,22 +164,24 @@ public class MainPageController implements Initializable {
         
         final PieChart chart = new PieChart(dataList);
         chart.setStyle("-fx-padding:10px;-fx-insets:0px;");
-        
-        
-        final Label caption = new Label("");
-        caption.setTextFill(Color.DARKORANGE);
-        caption.setStyle("-fx-font: 24 arial;");
 
-        for (final PieChart.Data dataValue : chart.getData()) {
-            dataValue.getNode().addEventHandler(MouseEvent.MOUSE_ENTERED,
-                new EventHandler<MouseEvent>() {
-                    @Override public void handle(MouseEvent e) {
-                        caption.setTranslateX(e.getSceneX());
-                        caption.setTranslateY(e.getSceneY());
-                        caption.setText(String.valueOf(dataValue.getPieValue()));
-                     }
-                });
-        }
+        chart.getData().forEach((dataValue) -> {
+            dataValue.getNode().addEventHandler(MouseEvent.MOUSE_PRESSED, (MouseEvent e) -> {
+                caption = new Label("");
+                caption.setTextFill(Color.BLUE);
+                caption.setStyle("-fx-font: 24 arial;");
+                caption.setTranslateX(e.getSceneX() + 10);
+                caption.setTranslateY(e.getSceneY() - 20);
+                caption.setText(String.valueOf(dataValue.getPieValue()));
+                mainPane.getChildren().add(caption);
+            });
+        });
+        
+        chart.getData().forEach((dataValue) -> {
+            dataValue.getNode().addEventHandler(MouseEvent.MOUSE_RELEASED, (MouseEvent e) -> {
+                mainPane.getChildren().remove(caption);
+            });
+        });
 
         chart.setMaxHeight(400.0);
         chart.setMaxWidth(400.0);
@@ -132,13 +189,39 @@ public class MainPageController implements Initializable {
         chartLocation.getChildren().add(chart);
     }
     
-    private void updateCounter (int data[]) {
-        newDeath.setText(Integer.toString(data[2]));
-        newCase.setText(Integer.toString(data[0]));
-        newRecovered.setText(Integer.toString(data[4]));
-        totalCase.setText(Integer.toString(data[1]));
-        totalRecovered.setText(Integer.toString(data[3]));
-        totalDeath.setText(Integer.toString(data[5]));
+    private void updateGlobalCounter (int data[]) {
+        String texts[] = new String[data.length];
+        for (int x = 0; x < data.length; x++) {
+            texts[x] = Integer.toString(data[x]);
+        }
+        newCase.setText(texts[0]);
+        newDeath.setText(texts[1]);
+        newRecovered.setText(texts[2]);
+        totalCase.setText(texts[3]);
+        activeCase.setText(texts[4]);
+        totalDeath.setText(texts[5]);
+        totalRecovered.setText(texts[6]);
+    }
+    
+    public void setupCountryData (JSONArray data) {
+        int newCases, newDeaths, newRecovered, totalCases, totalDeaths, totalRecovered, activeCases = 0;
+        String countryName;
+        ObservableList<CountryData> dataList = FXCollections.observableArrayList();
+        
+        for (int i = 0; i < data.length(); i++) {
+            countryName = data.getJSONObject(i).getString("Country");
+            newCases = data.getJSONObject(i).getInt("NewConfirmed");
+            newDeaths = data.getJSONObject(i).getInt("NewDeaths");
+            newRecovered = data.getJSONObject(i).getInt("NewRecovered");
+            totalCases = data.getJSONObject(i).getInt("TotalConfirmed");
+            totalDeaths = data.getJSONObject(i).getInt("TotalDeaths");
+            totalRecovered = data.getJSONObject(i).getInt("TotalRecovered");
+            activeCases = totalCases - totalDeaths - totalRecovered;
+            dataList.add(new CountryData(countryName, newCases, newDeaths, newRecovered,
+                        activeCases, totalCases, totalDeaths, totalRecovered));
+        }
+        
+        countryData.setItems(dataList);
     }
     
 }

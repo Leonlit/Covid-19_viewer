@@ -4,16 +4,18 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane id="AnchorPane" prefHeight="640.0" prefWidth="1100.0" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8.0.171" fx:controller="covid19_viewer.MainPageController">
+<AnchorPane id="AnchorPane" prefHeight="640.0" prefWidth="1100.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="covid19_viewer.MainPageController">
     <children>
         <Button fx:id="button" layoutX="126" layoutY="90" onAction="#handleButtonAction" text="Click Me!" />
         <Label fx:id="label" layoutX="126" layoutY="120" minHeight="16" minWidth="69" />
       <SplitPane dividerPositions="0.5" layoutY="-2.0" orientation="VERTICAL" prefHeight="640.0" prefWidth="1024.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
         <items>
-          <AnchorPane minHeight="320.0" minWidth="0.0" prefHeight="0.0" prefWidth="160.0">
+          <AnchorPane fx:id="mainPane" maxHeight="320.0" minHeight="320.0" minWidth="0.0" prefHeight="320.0" prefWidth="160.0">
                <children>
                   <Label fx:id="newCaseL" layoutX="87.0" layoutY="89.0" text="New Cases:">
                      <font>
@@ -35,61 +37,85 @@
                         <Font name="System Bold" size="17.0" />
                      </font>
                   </Label>
-                  <Label fx:id="totalRecoveredL" layoutX="43.0" layoutY="251.0" text="Total Recovered:">
+                  <Label fx:id="totalRecoveredL" layoutX="45.0" layoutY="282.0" text="Total Recovered:">
                      <font>
                         <Font name="System Bold" size="17.0" />
                      </font>
                   </Label>
-                  <Label fx:id="totalCaseL" layoutX="83.0" layoutY="186.0" text="Total Cases:">
+                  <Label fx:id="totalCaseL" layoutX="83.0" layoutY="217.0" text="Total Cases:">
                      <font>
                         <Font name="System Bold" size="17.0" />
                      </font>
                   </Label>
-                  <Label fx:id="totalDeathL" layoutX="71.0" layoutY="219.0" text="Total Deaths:">
+                  <Label fx:id="totalDeathL" layoutX="72.0" layoutY="250.0" text="Total Deaths:">
                      <font>
                         <Font name="System Bold" size="17.0" />
                      </font>
                   </Label>
-                  <Label fx:id="newCase" layoutX="207.0" layoutY="89.0" text="NC">
+                  <Label fx:id="newCase" layoutX="207.0" layoutY="89.0" text="NC" textFill="#9e9e9e">
                      <font>
                         <Font name="System Bold" size="17.0" />
                      </font>
                   </Label>
-                  <Label fx:id="newRecovered" layoutX="207.0" layoutY="153.0" text="NR">
+                  <Label fx:id="newRecovered" layoutX="207.0" layoutY="153.0" text="NR" textFill="#4ab531">
                      <font>
                         <Font name="System Bold" size="17.0" />
                      </font>
                   </Label>
-                  <Label fx:id="newDeath" layoutX="207.0" layoutY="119.0" text="ND">
+                  <Label fx:id="newDeath" layoutX="207.0" layoutY="119.0" text="ND" textFill="#616161">
                      <font>
                         <Font name="System Bold" size="17.0" />
                      </font>
                   </Label>
-                  <Label fx:id="totalDeath" layoutX="207.0" layoutY="219.0" text="TD">
+                  <Label fx:id="totalDeath" layoutX="207.0" layoutY="250.0" text="TD" textFill="#ff3232">
                      <font>
                         <Font name="System Bold" size="17.0" />
                      </font>
                   </Label>
-                  <Label fx:id="totalCase" layoutX="207.0" layoutY="186.0" text="TC">
+                  <Label fx:id="totalCase" layoutX="207.0" layoutY="217.0" text="TC">
                      <font>
                         <Font name="System Bold" size="17.0" />
                      </font>
                   </Label>
-                  <Label fx:id="totalRecovered" layoutX="207.0" layoutY="251.0" text="TR">
+                  <Label fx:id="totalRecovered" layoutX="207.0" layoutY="282.0" text="TR" textFill="#14ab14">
                      <font>
                         <Font name="System Bold" size="17.0" />
                      </font>
                   </Label>
-                  <AnchorPane fx:id="newChart" layoutX="384.0" layoutY="7.0" maxHeight="400.0" maxWidth="400.0" minHeight="400.0" minWidth="400.0" prefHeight="400.0" prefWidth="400.0" AnchorPane.bottomAnchor="63.0" AnchorPane.leftAnchor="384.0" AnchorPane.rightAnchor="429.0" AnchorPane.topAnchor="7.0" />
-                  <AnchorPane fx:id="totalChart" layoutX="695.0" layoutY="8.0" maxHeight="400.0" maxWidth="400.0" minHeight="400.0" minWidth="400.0" prefHeight="250.0" prefWidth="285.0" AnchorPane.bottomAnchor="62.0" AnchorPane.leftAnchor="695.0" AnchorPane.rightAnchor="118.0" AnchorPane.topAnchor="8.0" />
+                  <AnchorPane fx:id="newChart" layoutX="367.0" layoutY="-41.0" maxHeight="350.0" maxWidth="350.0" minHeight="350.0" minWidth="350.0" prefHeight="350.0" prefWidth="350.0" />
+                  <AnchorPane fx:id="totalChart" layoutX="717.0" layoutY="-41.0" maxHeight="350.0" maxWidth="350.0" minHeight="350.0" minWidth="350.0" prefHeight="350.0" prefWidth="350.0" />
+                  <Label fx:id="totalCaseL1" layoutX="73.0" layoutY="186.0" text="Active Cases:">
+                     <font>
+                        <Font name="System Bold" size="17.0" />
+                     </font>
+                  </Label>
+                  <Label fx:id="activeCase" layoutX="207.0" layoutY="186.0" text="AC" textFill="#674fff">
+                     <font>
+                        <Font name="System Bold" size="17.0" />
+                     </font>
+                  </Label>
                </children>
             </AnchorPane>
-          <AnchorPane minHeight="320.0" minWidth="0.0" prefHeight="0.0" prefWidth="160.0">
+          <AnchorPane maxHeight="1.7976931348623157E308" minHeight="320.0" minWidth="0.0" prefHeight="320.0" prefWidth="160.0">
                <children>
-                  <ScrollPane layoutX="61.0" layoutY="25.0" prefHeight="269.0" prefWidth="900.0" AnchorPane.bottomAnchor="26.0" AnchorPane.leftAnchor="61.0" AnchorPane.rightAnchor="61.0" AnchorPane.topAnchor="25.0">
-                    <content>
-                      <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="200.0" prefWidth="200.0" />
-                    </content>
+                  <ScrollPane fitToHeight="true" fitToWidth="true" layoutX="14.0" layoutY="12.0" prefHeight="297.0" prefWidth="1080.0" AnchorPane.bottomAnchor="11.0" AnchorPane.leftAnchor="14.0" AnchorPane.rightAnchor="17.0" AnchorPane.topAnchor="12.0">
+                     <content>
+                        <TableView fx:id="countryData" minWidth="-Infinity" prefHeight="295.0" prefWidth="1065.0">
+                          <columns>
+                            <TableColumn fx:id="CountryName" prefWidth="75.0" text="Country Name" />
+                            <TableColumn fx:id="NewCases" prefWidth="75.0" text="New Cases" />
+                              <TableColumn fx:id="NewDeaths" prefWidth="75.0" text="New Deaths" />
+                              <TableColumn fx:id="NewRecovered" prefWidth="75.0" text="New Recovered" />
+                              <TableColumn fx:id="ActiveCases" prefWidth="75.0" text="Active Cases" />
+                              <TableColumn fx:id="TotalCases" prefWidth="75.0" text="Total Cases" />
+                              <TableColumn fx:id="TotalDeaths" prefWidth="75.0" text="Total Deaths" />
+                              <TableColumn fx:id="TotalRecovered" prefWidth="75.0" text="Total Recovered" />
+                          </columns>
+                           <columnResizePolicy>
+                              <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                           </columnResizePolicy>
+                        </TableView>
+                     </content>
                   </ScrollPane>
                </children>
             </AnchorPane>

@@ -19,10 +19,12 @@ public class Covid19_Viewer extends Application {
     
     @Override
     public void start(Stage stage) throws Exception {
-        Parent root = FXMLLoader.load(getClass().getResource("MainPage.fxml"));
         
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("MainPage.fxml"));
+        Parent root = loader.load();
+
         Scene scene = new Scene(root);
-        
+
         stage.setScene(scene);
         stage.show();
     }
