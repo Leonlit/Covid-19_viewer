@@ -39,6 +39,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
@@ -48,7 +49,6 @@ import org.json.JSONObject;
 public class MainPageController implements Initializable {
     
     private Label caption;
-
     
     @FXML
     private Label newCase, newDeath, newRecovered, 
@@ -76,7 +76,8 @@ public class MainPageController implements Initializable {
     }
     
     @Override
-    public void initialize(URL url, ResourceBundle rb) {        
+    public void initialize(URL url, ResourceBundle rb) {
+        //setting up tableView section
         CountryName.setCellValueFactory(new PropertyValueFactory<CountryData, Integer>("CountryName"));
         NewCases.setCellValueFactory(new PropertyValueFactory<CountryData, Integer>("NewCases"));
         NewDeaths.setCellValueFactory(new PropertyValueFactory<CountryData, Integer>("NewDeaths"));
@@ -91,68 +92,90 @@ public class MainPageController implements Initializable {
             row.setOnMouseClicked(event -> {
                 if (event.getClickCount() == 2 && (! row.isEmpty()) ) {
                     CountryData rowData = row.getItem();
-                    System.out.println("Double click on: "+ rowData.getCountryName());
+                    System.out.println("Double click on: "+ rowData.getSlug());
                 }
             });
             return row ;
         });
         
         countryData.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-        getAPIData();
+        //loading main page
+        getGlobalData(-1);
     }
     
-    private void getAPIData () {
+    private void getGlobalData (int forced) {
+        String result = FileManagement.getFromFile("global");
+        final String url = "https://api.covid19api.com/summary";
         try {
-            URL website = new URL("https://api.covid19api.com/summary");
-            HttpURLConnection conn = (HttpURLConnection) website.openConnection();
-            conn.setRequestMethod("GET");
-            conn.addRequestProperty("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36");
-            conn.connect();
-            
-            int responseCode = conn.getResponseCode(); //200 means ok
-            if (responseCode != 200) {
-                //remember to make a new custom error window for this refer last project
-                throw new RuntimeException("HttpResponseCode: " + responseCode);
-            }else {
-                BufferedReader r  = new BufferedReader(new InputStreamReader(conn.getInputStream(), Charset.forName("UTF-8")));
+            if (result.equals("") || result == "" || forced == 1) {
+                URL website = new URL(url);
+                HttpURLConnection conn = (HttpURLConnection) website.openConnection();
+                conn.setRequestMethod("GET");
+                conn.addRequestProperty("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36");
+                conn.connect();
 
-                StringBuilder sb = new StringBuilder();
-                String line;
-                while ((line = r.readLine()) != null) {
-                    sb.append(line);
+                int responseCode = conn.getResponseCode(); //200 means ok
+                if (responseCode != 200) {
+                    //remember to make a new custom error window for this refer last project
+                    //implement various code response later
+                    throw new RuntimeException("HttpResponseCode: " + responseCode);
+                }else {
+                    BufferedReader r  = new BufferedReader(new InputStreamReader(conn.getInputStream(), Charset.forName("UTF-8")));
+
+                    StringBuilder sb = new StringBuilder();
+                    String line;
+
+                    while ((line = r.readLine()) != null) {
+                        sb.append(line);
+                    }
+                    System.out.println(sb.toString());
+                    result = sb.toString(); 
+                    FileManagement.saveIntoFile(result, "global");
                 }
-                System.out.println(sb.toString());
-                String result = sb.toString();
-                
-                JSONObject parsedJSON = new JSONObject(result);
-                JSONObject globalData = (JSONObject) parsedJSON.get("Global");
-                JSONArray countriesData = parsedJSON.getJSONArray("Countries");
-                setupCountryData(countriesData);
-                
-                String globalLegends[] = {"New Confirmed", "New Deaths", "New Recovered", "Total Confirmed", "Total Active", "Total Deaths", "Total Recovered"};
-                
-                //since everthing in JSON is string, we'll need to get the string one by one RIP lel.
-                int globalStats[] = { 
-                                        Integer.parseInt(globalData.get("NewConfirmed").toString()),
-                                        Integer.parseInt(globalData.get("NewDeaths").toString()),
-                                        Integer.parseInt(globalData.get("NewRecovered").toString()),
-                                        Integer.parseInt(globalData.get("TotalConfirmed").toString()),
-                                        0,
-                                        Integer.parseInt(globalData.get("TotalDeaths").toString()),
-                                        Integer.parseInt(globalData.get("TotalRecovered").toString())
-                                        };
-                   //calculating active cases
-                globalStats[4] = globalStats[3] - globalStats[5] - globalStats[6];
-                
-                drawGraph(Arrays.copyOfRange(globalStats, 0, 3), Arrays.copyOfRange(globalLegends, 0, 3), newChart);
-                drawGraph(Arrays.copyOfRange(globalStats, 4, 7), Arrays.copyOfRange(globalLegends, 4, 7), totalChart);
-                updateGlobalCounter(globalStats);
             }
         } catch (MalformedURLException ex) {
             //remember to change to custom error handling
-            Logger.getLogger(MainPageController.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            Logger.getLogger(MainPageController.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.println("Access point to the API has been changed. Searching for data history in repository");
+        } catch (IOException | RuntimeException ex) {
+            System.out.println("Unable to connect with the API's server, searching for history data in directory");
+        }finally {
+            if (!(result.equals("") || result == "")) {
+                setupMainPage(result);
+            }else {
+                //pop up error
+            }
+        }
+    }
+    
+    private void setupMainPage (String response) {
+        try {
+            JSONObject parsedJSON = new JSONObject(response);
+            JSONObject globalData = (JSONObject) parsedJSON.get("Global");
+            JSONArray countriesData = parsedJSON.getJSONArray("Countries");
+        
+            setupCountryData(countriesData);
+
+            String globalLegends[] = {"New Confirmed", "New Deaths", "New Recovered", "Total Confirmed", "Total Active", "Total Deaths", "Total Recovered"};
+
+            //since everthing in JSON is string, we'll need to get the string one by one RIP lel.
+            int globalStats[] = { 
+                                    Integer.parseInt(globalData.get("NewConfirmed").toString()),
+                                    Integer.parseInt(globalData.get("NewDeaths").toString()),
+                                    Integer.parseInt(globalData.get("NewRecovered").toString()),
+                                    Integer.parseInt(globalData.get("TotalConfirmed").toString()),
+                                    0,
+                                    Integer.parseInt(globalData.get("TotalDeaths").toString()),
+                                    Integer.parseInt(globalData.get("TotalRecovered").toString())
+                                    };
+            //calculating active cases
+            globalStats[4] = globalStats[3] - globalStats[5] - globalStats[6];
+
+            drawGraph(Arrays.copyOfRange(globalStats, 0, 3), Arrays.copyOfRange(globalLegends, 0, 3), newChart);
+            drawGraph(Arrays.copyOfRange(globalStats, 4, 7), Arrays.copyOfRange(globalLegends, 4, 7), totalChart);
+            updateGlobalCounter(globalStats);
+        }catch (JSONException ex) {
+            System.out.println("File Integrity changed, requesting new data from server");
+            getGlobalData(1);
         }
     }
     
@@ -205,11 +228,12 @@ public class MainPageController implements Initializable {
     
     public void setupCountryData (JSONArray data) {
         int newCases, newDeaths, newRecovered, totalCases, totalDeaths, totalRecovered, activeCases = 0;
-        String countryName;
+        String countryName, countrySlug;
         ObservableList<CountryData> dataList = FXCollections.observableArrayList();
         
         for (int i = 0; i < data.length(); i++) {
             countryName = data.getJSONObject(i).getString("Country");
+            countrySlug = data.getJSONObject(i).getString("Slug");
             newCases = data.getJSONObject(i).getInt("NewConfirmed");
             newDeaths = data.getJSONObject(i).getInt("NewDeaths");
             newRecovered = data.getJSONObject(i).getInt("NewRecovered");
@@ -217,7 +241,7 @@ public class MainPageController implements Initializable {
             totalDeaths = data.getJSONObject(i).getInt("TotalDeaths");
             totalRecovered = data.getJSONObject(i).getInt("TotalRecovered");
             activeCases = totalCases - totalDeaths - totalRecovered;
-            dataList.add(new CountryData(countryName, newCases, newDeaths, newRecovered,
+            dataList.add(new CountryData(countryName, countrySlug, newCases, newDeaths, newRecovered,
                         activeCases, totalCases, totalDeaths, totalRecovered));
         }
         

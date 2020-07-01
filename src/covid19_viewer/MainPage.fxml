@@ -52,32 +52,32 @@
                         <Font name="System Bold" size="17.0" />
                      </font>
                   </Label>
-                  <Label fx:id="newCase" layoutX="207.0" layoutY="89.0" text="NC" textFill="#9e9e9e">
+                  <Label fx:id="newCase" layoutX="207.0" layoutY="89.0" text="0" textFill="#9e9e9e">
                      <font>
                         <Font name="System Bold" size="17.0" />
                      </font>
                   </Label>
-                  <Label fx:id="newRecovered" layoutX="207.0" layoutY="153.0" text="NR" textFill="#4ab531">
+                  <Label fx:id="newRecovered" layoutX="207.0" layoutY="153.0" text="0" textFill="#4ab531">
                      <font>
                         <Font name="System Bold" size="17.0" />
                      </font>
                   </Label>
-                  <Label fx:id="newDeath" layoutX="207.0" layoutY="119.0" text="ND" textFill="#616161">
+                  <Label fx:id="newDeath" layoutX="207.0" layoutY="119.0" text="0" textFill="#616161">
                      <font>
                         <Font name="System Bold" size="17.0" />
                      </font>
                   </Label>
-                  <Label fx:id="totalDeath" layoutX="207.0" layoutY="250.0" text="TD" textFill="#ff3232">
+                  <Label fx:id="totalDeath" layoutX="207.0" layoutY="250.0" text="0" textFill="#ff3232">
                      <font>
                         <Font name="System Bold" size="17.0" />
                      </font>
                   </Label>
-                  <Label fx:id="totalCase" layoutX="207.0" layoutY="217.0" text="TC">
+                  <Label fx:id="totalCase" layoutX="207.0" layoutY="217.0" text="0">
                      <font>
                         <Font name="System Bold" size="17.0" />
                      </font>
                   </Label>
-                  <Label fx:id="totalRecovered" layoutX="207.0" layoutY="282.0" text="TR" textFill="#14ab14">
+                  <Label fx:id="totalRecovered" layoutX="207.0" layoutY="282.0" text="0" textFill="#14ab14">
                      <font>
                         <Font name="System Bold" size="17.0" />
                      </font>
@@ -89,7 +89,7 @@
                         <Font name="System Bold" size="17.0" />
                      </font>
                   </Label>
-                  <Label fx:id="activeCase" layoutX="207.0" layoutY="186.0" text="AC" textFill="#674fff">
+                  <Label fx:id="activeCase" layoutX="207.0" layoutY="186.0" text="0" textFill="#674fff">
                      <font>
                         <Font name="System Bold" size="17.0" />
                      </font>
