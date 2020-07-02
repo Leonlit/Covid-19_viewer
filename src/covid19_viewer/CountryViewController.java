@@ -21,12 +21,20 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.chart.AreaChart;
 import javafx.scene.chart.CategoryAxis;
+import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.PieChart;
 import javafx.scene.chart.XYChart;
+import javafx.scene.chart.XYChart.Data;
 import javafx.scene.chart.XYChart.Series;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.Tooltip;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.Pane;
+import javafx.scene.paint.Color;
 import org.json.JSONArray;
 import org.json.JSONException;
 
@@ -42,15 +50,109 @@ public class CountryViewController implements Initializable {
     private ArrayList<Integer> allCases, allDeaths, allRecovered, allActive;
     private ArrayList<String> dates;
     
-    @FXML 
-    private Label newCase, newDeath, newRecovered, 
-                    totalCase, activeCase, totalDeath, totalRecovered;
+    @FXML private CheckBox casesT, deathsT, recoveredT, activeT;
     
     @FXML 
-    AnchorPane graphPlace;
+    private Label newCase, newDeath, newRecovered, 
+                    totalCase, activeCase, totalDeath, totalRecovered, countryName;
+    
+    @FXML AnchorPane graphPlace, subPane;
+    
+    @FXML ScrollPane graphCont;
     
     @FXML
     private AnchorPane mainPane, newChart, totalChart;
+    
+    @FXML
+    private void drawSpecificGraph() {
+        graphPlace.getChildren().clear();
+        String checked = "";
+        String legends[] = {"Total Cases", "Total Deaths", "Total Recovered", "Total Active"};
+        
+        if (casesT.isSelected()) {
+            checked += "0";
+        }
+        if (deathsT.isSelected()) {
+            checked += "1";
+        }
+        if (recoveredT.isSelected()) {
+            checked += "2";
+        }
+        if(activeT.isSelected()) {
+            checked += "3";
+        }
+        if (checked.length() > 0) {
+            String checks[] = checked.split("");
+            int option[] = new int[checks.length];
+            int counter = 0;
+            for (String i : checks) {
+                option[counter++] = Integer.parseInt(i);
+            }
+            ArrayList<ArrayList<Integer>> options = new ArrayList<ArrayList<Integer>>();
+            for (int x = 0 ; x< option.length;x++) {
+                switch (x) {
+                    case 0:
+                        options.add(allCases);
+                        break;
+                    case 1:
+                        options.add(allDeaths);
+                        break;
+                    case 2:
+                        options.add(allRecovered);
+                        break;
+                    case 3:
+                        options.add(allActive);
+                        break;
+                }
+            }
+
+            final CategoryAxis xAxis = new CategoryAxis();
+            final NumberAxis yAxis = new NumberAxis();
+
+            LineChart<String,Number> chart = new LineChart<String,Number>(xAxis,yAxis);
+            chart.setTitle("Country Data - All");
+
+            for (int line = 0; line < options.size();line++) {
+                Series data = new Series();
+                data.setName(legends[Integer.parseInt(checks[line])]);
+                for (int x = 0; x < options.get(line).size();x++) {
+                    data.getData().add(new XYChart.Data(dates.get(x), options.get(line).get(x)));
+                }
+                chart.getData().addAll(data);
+            }
+
+            //graphPlace.setMinSize(900.0, 900.0);
+            chart.setLegendVisible(true);
+            //chart.getData().
+
+
+            final Label caption = new Label("");
+            for (Series<String,Number> serie: chart.getData()){
+                for (XYChart.Data<String, Number> item: serie.getData()){
+                    item.getNode().addEventHandler(MouseEvent.MOUSE_PRESSED, (MouseEvent e) -> {
+                        caption.setTextFill(Color.BLACK);
+                        caption.setStyle("-fx-font: 24 arial;");
+                        caption.setTranslateX(e.getSceneX() - 50);
+                        caption.setTranslateY(e.getSceneY() - 20);
+                        caption.setText(String.valueOf(item.getYValue()));
+                        mainPane.getChildren().add(caption);
+                    });
+                    item.getNode().addEventHandler(MouseEvent.MOUSE_RELEASED, (MouseEvent e) -> {
+                        mainPane.getChildren().remove(caption);
+                    });
+                }
+            }
+
+            chart.setMinWidth(1400);
+            graphCont.setMinViewportWidth(1400);
+            graphPlace.getChildren().add(chart);
+        }
+    }
+    
+    @FXML
+    private void showAllBack () {
+        drawInitialAreaChart(allCases, allDeaths, allRecovered, allActive, dates);
+    }
     
     /**
      * Initializes the controller class.
@@ -68,6 +170,7 @@ public class CountryViewController implements Initializable {
         activeCase.setText(Integer.toString(data.getActiveCases()));
         totalDeath.setText(Integer.toString(data.getTotalDeaths()));
         totalRecovered.setText(Integer.toString(data.getTotalRecovered()));
+        countryName.setText(data.getCountryName());
     }
     
     public void setupData (CountryData data) {
@@ -79,7 +182,7 @@ public class CountryViewController implements Initializable {
     }
     
     private void showDetailedData (int forced) {
-        final String apiURL = "https://api.covid19api.com/country/" + data.getSlug() +  "?from=2020-03-01T00:00:00Z&to=2020-04-01T00:00:00Z";
+        final String apiURL = "https://api.covid19api.com/total/country/" + data.getSlug();
         String result = FileManagement.getFromFile(data.getSlug(), 0);
         
         try {
@@ -148,30 +251,31 @@ public class CountryViewController implements Initializable {
     
     private void setupDetailedGraph (String result) {
         try {
-            ArrayList<Integer> totalCases = new ArrayList<Integer>();
-            ArrayList<Integer> deaths = new ArrayList<Integer>();
-            ArrayList<Integer> recovered = new ArrayList<Integer>();
-            ArrayList<Integer> active = new ArrayList<Integer>();
-            ArrayList<String> legends = new ArrayList<String>();
+            allCases = new ArrayList<Integer>();
+            allDeaths = new ArrayList<Integer>();
+            allRecovered = new ArrayList<Integer>();
+            allActive = new ArrayList<Integer>();
+            dates = new ArrayList<String>();
 
             JSONArray data = new JSONArray(result);
             for (int x = 0; x< data.length();x++) {
-                totalCases.add(data.getJSONObject(x).getInt("Confirmed"));
-                deaths.add(data.getJSONObject(x).getInt("Deaths"));
-                recovered.add(data.getJSONObject(x).getInt("Recovered"));
-                active.add(data.getJSONObject(x).getInt("Active"));
-                legends.add(data.getJSONObject(x).getString("Date").substring(0,10));
+                allCases.add(data.getJSONObject(x).getInt("Confirmed"));
+                allDeaths.add(data.getJSONObject(x).getInt("Deaths"));
+                allRecovered.add(data.getJSONObject(x).getInt("Recovered"));
+                allActive.add(data.getJSONObject(x).getInt("Active"));
+                dates.add(data.getJSONObject(x).getString("Date").substring(0,10));
             }
 
-            drawInitialAreaChart(totalCases, deaths, recovered, active, legends);
+            drawInitialAreaChart(allCases, allDeaths, allRecovered, allActive, dates);
             //dataList.add(new PieChart.Data(legends[x], data[x]));
             
         }catch (JSONException ex) {
             System.out.println("File Integrity changed, requesting new data from server");
             if (timeOut < 4){
-                //getGlobalData(1);
+                showDetailedData(1);
                 timeOut++;
             }else {
+                //this need to be popped up
                 System.out.println("Couldn't load API data and there's no history data for the selected Item.");
             }
         }
@@ -184,43 +288,61 @@ public class CountryViewController implements Initializable {
         allRecovered = recovered;
         allActive = active;
         dates = legends;
-        ObservableList<String> newLegends = FXCollections.observableArrayList();;
-        for (int x = 0; x< legends.size();x++) {
-            newLegends.add(legends.get(x));
-        }
         
         final CategoryAxis xAxis = new CategoryAxis();
         final NumberAxis yAxis = new NumberAxis();
         
-        final AreaChart<String,Number> chart = new AreaChart<String,Number>(xAxis,yAxis);
+        LineChart<String,Number> chart = new LineChart<String,Number>(xAxis,yAxis);
         chart.setTitle("Country Data - All");
         
         Series TCases= new Series();
-        TCases.setName("totalCases");
+        TCases.setName("total Cases");
         for (int x = 0; x < totalCases.size();x++) {
             TCases.getData().add(new XYChart.Data(legends.get(x), totalCases.get(x)));
         }
         
         Series DCases= new Series();
-        DCases.setName("totalCases");
+        DCases.setName("Total Deaths");
         for (int x = 0; x < deaths.size();x++) {
             DCases.getData().add(new XYChart.Data(legends.get(x), deaths.get(x)));
         }
         
         Series RCases= new Series();
-        RCases.setName("totalCases");
+        RCases.setName("Total Recovered");
         for (int x = 0; x < recovered.size();x++) {
             RCases.getData().add(new XYChart.Data(legends.get(x), recovered.get(x)));
         }
         
         Series ACases= new Series();
-        ACases.setName("totalCases");
+        ACases.setName("Total Active");
         for (int x = 0; x < active.size();x++) {
             ACases.getData().add(new XYChart.Data(legends.get(x), active.get(x)));
         }
         
-        graphPlace.setMaxSize(900.0, 300.0);
+        //graphPlace.setMinSize(900.0, 900.0);
+        chart.setLegendVisible(true);
+        //chart.getData().
         chart.getData().addAll(TCases, DCases, RCases, ACases);
+        
+        final Label caption = new Label("");
+        for (Series<String,Number> serie: chart.getData()){
+            for (XYChart.Data<String, Number> item: serie.getData()){
+                item.getNode().addEventHandler(MouseEvent.MOUSE_PRESSED, (MouseEvent e) -> {
+                    caption.setTextFill(Color.BLACK);
+                    caption.setStyle("-fx-font: 24 arial;");
+                    caption.setTranslateX(e.getSceneX() - 50);
+                    caption.setTranslateY(e.getSceneY() - 20);
+                    caption.setText(String.valueOf(item.getYValue()));
+                    mainPane.getChildren().add(caption);
+                });
+                item.getNode().addEventHandler(MouseEvent.MOUSE_RELEASED, (MouseEvent e) -> {
+                    mainPane.getChildren().remove(caption);
+                });
+            }
+        }
+        
+        chart.setMinWidth(1400);
+        graphCont.setMinViewportWidth(1400);
         graphPlace.getChildren().add(chart);
     }
     
