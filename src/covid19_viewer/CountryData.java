@@ -16,11 +16,10 @@ public class CountryData {
     private final SimpleIntegerProperty newCases, newDeaths, newRecovered, activeCases,
                                         totalCases, totalDeaths, totalRecovered;
     private final SimpleStringProperty countryName;
-    private String slug;
+    private String slug, date;
     
     public CountryData (String countryName, String slug, int newCases, int newDeaths, int newRecovered,
-                        int activeCases, int totalCases, int totalDeaths, int totalRecovered) {
-        super();
+                        int activeCases, int totalCases, int totalDeaths, int totalRecovered, String date) {
         this.countryName = new SimpleStringProperty(countryName);
         this.newCases = new SimpleIntegerProperty(newCases);
         this.newDeaths = new SimpleIntegerProperty(newDeaths);
@@ -30,6 +29,7 @@ public class CountryData {
         this.totalDeaths = new SimpleIntegerProperty(totalDeaths);
         this.totalRecovered = new SimpleIntegerProperty(totalRecovered);
         this.slug = slug;
+        this.date = date;
     }
     
     public String getCountryName () {
@@ -38,6 +38,11 @@ public class CountryData {
     
     public String getSlug () {
         return slug;
+    }
+    
+    public String getDate() {
+        String token[] = date.substring(0,10).split("-");
+        return token[2] + "/" + token[1] + "/" + token[0];
     }
     
     public int getNewCases () {
@@ -67,4 +72,11 @@ public class CountryData {
         return totalRecovered.get();
     }
             
+}
+
+
+class CountriesData {
+    public CountriesData () {
+        
+    }
 }

@@ -95,22 +95,20 @@ public class MainPageController implements Initializable {
             row.setOnMouseClicked(event -> {
                 if (event.getClickCount() == 2 && (! row.isEmpty()) ) {
                     CountryData rowData = row.getItem();
-                    if (!viewingCountry) {
-                        try {
-                            Stage addNew = new Stage();
-                            FXMLLoader loader = new FXMLLoader(getClass().getResource("CountryView.fxml"));
-                            Parent root = loader.load();
-                            
-                            CountryViewController controller = loader.getController();
-                            //Pass whatever data you want. You can have multiple method calls here
-                            controller.setupData(rowData);
-                            Scene addAssignment = new Scene(root);
-                            addNew.setScene(addAssignment);
-                            addNew.setTitle("Data for " + rowData.getCountryName());
-                            addNew.show();
-                        } catch (IOException ex) {
-                            Logger.getLogger(MainPageController.class.getName()).log(Level.SEVERE, null, ex);
-                        }
+                    try {
+                        Stage cont = new Stage();
+                        FXMLLoader loader = new FXMLLoader(getClass().getResource("CountryView.fxml"));
+                        Parent root = loader.load();
+
+                        CountryViewController controller = loader.getController();
+                        //Pass whatever data you want. You can have multiple method calls here
+                        controller.setupData(rowData);
+                        Scene countryView = new Scene(root);
+                        cont.setScene(countryView);
+                        cont.setTitle("Data for " + rowData.getCountryName());
+                        cont.show();
+                    } catch (IOException ex) {
+                        Logger.getLogger(MainPageController.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
             });
@@ -126,7 +124,7 @@ public class MainPageController implements Initializable {
         String result ="";
         final String url = "https://api.covid19api.com/summary";
         try {
-            result = FileManagement.getFromFile("global", 0);
+            result = FileManagement.getFromFile("global");
             if (result.equals("") || result == "" || forced == 1) {
                 System.out.println("Getting data from Server");
                 URL website = new URL(url);
@@ -212,7 +210,9 @@ public class MainPageController implements Initializable {
     public static void drawPieGraph (int data[], String legends[], Pane chartLocation, AnchorPane mainPane) {
         ObservableList dataList = FXCollections.observableArrayList();
         for (int x = 0; x< data.length;x++) {
-            dataList.add(new PieChart.Data(legends[x], data[x]));
+            if (data[x] != 0) {
+                dataList.add(new PieChart.Data(legends[x], data[x]));
+            }
         }
         
         final PieChart chart = new PieChart(dataList);
@@ -258,7 +258,7 @@ public class MainPageController implements Initializable {
     
     public void setupCountryData (JSONArray data) {
         int newCases, newDeaths, newRecovered, totalCases, totalDeaths, totalRecovered, activeCases = 0;
-        String countryName, countrySlug;
+        String countryName, countrySlug, date;
         ObservableList<CountryData> dataList = FXCollections.observableArrayList();
         
         for (int i = 0; i < data.length(); i++) {
@@ -270,9 +270,10 @@ public class MainPageController implements Initializable {
             totalCases = data.getJSONObject(i).getInt("TotalConfirmed");
             totalDeaths = data.getJSONObject(i).getInt("TotalDeaths");
             totalRecovered = data.getJSONObject(i).getInt("TotalRecovered");
+            date = data.getJSONObject(i).getString("Date");
             activeCases = totalCases - totalDeaths - totalRecovered;
             dataList.add(new CountryData(countryName, countrySlug, newCases, newDeaths, newRecovered,
-                        activeCases, totalCases, totalDeaths, totalRecovered));
+                        activeCases, totalCases, totalDeaths, totalRecovered, date));
         }
         
         countryData.setItems(dataList);

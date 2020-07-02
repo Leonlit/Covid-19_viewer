@@ -37,7 +37,7 @@ public class FileManagement {
         }
     }
     
-    public static String getFromFile (String type, int forced) {
+    public static String getFromFile (String type) {
         String data = "";
         try {
             File directory = new File(".");
@@ -45,11 +45,26 @@ public class FileManagement {
                                 + File.separator + type +".txt";
             long time = new File (fileName).lastModified();
             
-            if (System.currentTimeMillis() - time < 900000 || forced == 1) {
+            if (System.currentTimeMillis() - time < 900000) {
                 Scanner input = new Scanner(new File(fileName));
                 data = input.nextLine();
                 System.out.println("Getting History Data");
             }
+        }catch (IOException ex) {
+            //no cache data for this type of data
+        }
+        return data;
+    }
+    
+    public static String getFromFile (String type, int forced) {
+        String data = "";
+        try {
+            File directory = new File(".");
+            String fileName = directory.getCanonicalPath().concat(File.separator + "historyData") 
+                                + File.separator + type +".txt";
+            Scanner input = new Scanner(new File(fileName));
+            data = input.nextLine();
+            System.out.println("Forcefully Getting History Data");
         }catch (IOException ex) {
             //no cache data for this type of data
         }
