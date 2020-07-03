@@ -32,6 +32,7 @@ public class FileManagement {
             channel.write(buffer);
             stream.close();
             channel.close();
+            System.out.println("Saving data into files in the historyData directory");
         }catch (IOException ex) {
             //error when storing content to file, quite impossible
         }
@@ -48,7 +49,7 @@ public class FileManagement {
             if (System.currentTimeMillis() - time < 900000) {
                 Scanner input = new Scanner(new File(fileName));
                 data = input.nextLine();
-                System.out.println("Getting History Data");
+                System.out.println("Try getting History Data");
             }
         }catch (IOException ex) {
             //no cache data for this type of data

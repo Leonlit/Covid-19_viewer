@@ -121,12 +121,12 @@ public class MainPageController implements Initializable {
     }
     
     private void getGlobalData (int forced) {
-        String result ="";
+        String result = result = FileManagement.getFromFile("global");
         final String url = "https://api.covid19api.com/summary";
         try {
-            result = FileManagement.getFromFile("global");
+            
             if (result.equals("") || result == "" || forced == 1) {
-                System.out.println("Getting data from Server");
+                System.out.println("Getting global data from Server");
                 URL website = new URL(url);
                 HttpURLConnection conn = (HttpURLConnection) website.openConnection();
                 conn.setRequestMethod("GET");
@@ -147,7 +147,6 @@ public class MainPageController implements Initializable {
                     while ((line = r.readLine()) != null) {
                         sb.append(line);
                     }
-                    System.out.println(sb.toString());
                     result = sb.toString(); 
                     FileManagement.saveIntoFile(result, "global");
                 }

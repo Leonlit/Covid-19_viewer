@@ -181,6 +181,7 @@ public class CountryViewController implements Initializable {
 
                     throw new RuntimeException("HttpResponseCode: " + responseCode);
                 }else {
+                    System.out.println("Try getting " + data.getSlug() + " data from Server");
                     BufferedReader r  = new BufferedReader(new InputStreamReader(conn.getInputStream(), Charset.forName("UTF-8")));
                     StringBuilder sb = new StringBuilder();
                     String line;
@@ -189,10 +190,11 @@ public class CountryViewController implements Initializable {
                         sb.append(line);
                     }
 
-                    System.out.println(sb.toString());
                     result = sb.toString();
                     FileManagement.saveIntoFile(result, data.getSlug());
                 }
+            }else {
+                System.out.println("Using Country " + data.getSlug() + " History Data");
             }
         } catch (MalformedURLException ex) {
             //remember to change to custom error handling

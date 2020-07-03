@@ -18,7 +18,10 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.util.StringConverter;
 import org.json.JSONArray;
 
 /**
@@ -28,29 +31,83 @@ import org.json.JSONArray;
  */
 public class ComparingDataController implements Initializable {
     
-    @FXML private ComboBox countriesList;
+    @FXML private ComboBox<CountriesData> countriesList;
+    @FXML private Label firstCont, secondCont, thirdCont;
+    @FXML private Button del1, del2, del3, hide1, hide2, hide3;
+    @FXML private Button del[] = {del1, del2, del3};
+    @FXML private Button hide[] = {hide1, hide2, hide3};
     
-    CountryData data[] = new CountryData[3];
+    ArrayList<CountriesData> dataCont = new ArrayList<CountriesData>();
     /**
      * Initializes the controller class.
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         getCountriesName(0);
+        for (Button )
     }
     
     @FXML
     private void addToCompare () {
+        try {
+            CountriesData selected = countriesList.getValue();
+            if (selected.getCountryName() != null && !selected.toString().equals("Countries") && dataCont.size() <=3){
+                dataCont.add(selected);
+            }
+            updateSelectedNames();
+        }catch (NullPointerException ex) {
+            System.out.println("Error, no country name is selected");
+        }
+    }
         
+    @FXML
+    private void removeData (int place) {
+        boolean error = false;
+        switch (place) {
+            case 0:
+                dataCont.remove(0);
+                break;
+            case 1:
+                dataCont.remove(1);
+                break;
+            case 2:
+                dataCont.remove(2);
+                break;
+            default:
+                System.out.println("Box location not found");
+                error = true;
+        }
+        if (!error) {
+            thirdCont.setText("");
+        }
+        updateSelectedNames();
+    }
+    
+    private void updateSelectedNames () {
+        for (int x = 0;x< dataCont.size();x++) {
+            switch (x) {
+                case 0:
+                    firstCont.setText(dataCont.get(x).getCountryName());
+                    break;
+                case 1:
+                    secondCont.setText(dataCont.get(x).getCountryName());
+                    break;
+                case 2:
+                    thirdCont.setText(dataCont.get(x).getCountryName());
+                    break;
+                default:
+                    System.out.println("error when putting countries name");
+            }
+        }
     }
     
     private void getCountriesName(int forced) {
-        String result ="";
+        String result = FileManagement.getFromFile("countries");
         final String url = "https://api.covid19api.com/countries";
         try {
-            result = FileManagement.getFromFile("countries", 0);
+            result = FileManagement.getFromFile("countries");
             if (result.equals("") || result == "" || forced == 1) {
-                System.out.println("Getting data from Server");
+                System.out.println("Getting countries data from Server");
                 URL website = new URL(url);
                 HttpURLConnection conn = (HttpURLConnection) website.openConnection();
                 conn.setRequestMethod("GET");
@@ -71,12 +128,11 @@ public class ComparingDataController implements Initializable {
                     while ((line = r.readLine()) != null) {
                         sb.append(line);
                     }
-                    System.out.println(sb.toString());
                     result = sb.toString(); 
                     FileManagement.saveIntoFile(result, "countries");
                 }
             }else {
-                System.out.println("Using History Data");
+                System.out.println("Using Countries History Data");
             }
         } catch (MalformedURLException ex) {
             //remember to change to custom error handling
@@ -100,10 +156,30 @@ public class ComparingDataController implements Initializable {
         JSONArray data = new JSONArray(result);
         for (int x = 0; x< data.length();x++) {
             countries.add(data.getJSONObject(x).getString("Country"));
-            slugs.add(data.getJSONObject(x).getString("Slug"));
+            slugs.add(data.getJSONObject(x).getString("Slug"));   
         }
-        ObservableList dataList = FXCollections.observableArrayList(countries);
+        
+        ObservableList<CountriesData> dataList = FXCollections.observableArrayList();
+        for (int x=0;x<countries.size();x++) {
+            dataList.add(new CountriesData(countries.get(x), slugs.get(x)));
+        }
+        
         countriesList.setItems(dataList);
+        
+        countriesList.setConverter(new StringConverter<CountriesData>() {
+
+            @Override
+            public String toString(CountriesData object) {
+                return object.getCountryName();
+            }
+
+            @Override
+            public CountriesData fromString(String string) {
+                return countriesList.getItems().stream().filter(ap -> 
+                    ap.getCountryName().equals(string)).findFirst().orElse(null);
+            }
+        });
+        
     }
     
 }

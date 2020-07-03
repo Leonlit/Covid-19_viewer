@@ -12,15 +12,14 @@ import javafx.beans.property.SimpleStringProperty;
  *
  * @author User
  */
-public class CountryData {
+public class CountryData extends CountriesData{
     private final SimpleIntegerProperty newCases, newDeaths, newRecovered, activeCases,
                                         totalCases, totalDeaths, totalRecovered;
-    private final SimpleStringProperty countryName;
-    private String slug, date;
+    private String date;
     
     public CountryData (String countryName, String slug, int newCases, int newDeaths, int newRecovered,
                         int activeCases, int totalCases, int totalDeaths, int totalRecovered, String date) {
-        this.countryName = new SimpleStringProperty(countryName);
+        super(countryName, slug);
         this.newCases = new SimpleIntegerProperty(newCases);
         this.newDeaths = new SimpleIntegerProperty(newDeaths);
         this.newRecovered = new SimpleIntegerProperty(newRecovered);
@@ -28,16 +27,7 @@ public class CountryData {
         this.totalCases = new SimpleIntegerProperty(totalCases);
         this.totalDeaths = new SimpleIntegerProperty(totalDeaths);
         this.totalRecovered = new SimpleIntegerProperty(totalRecovered);
-        this.slug = slug;
         this.date = date;
-    }
-    
-    public String getCountryName () {
-        return countryName.get();
-    }
-    
-    public String getSlug () {
-        return slug;
     }
     
     public String getDate() {
@@ -70,13 +60,23 @@ public class CountryData {
     
     public int getTotalRecovered () {
         return totalRecovered.get();
-    }
-            
+    }        
 }
 
-
 class CountriesData {
-    public CountriesData () {
-        
+    private final SimpleStringProperty countryName;
+    private String slug;
+    
+    public CountriesData (String country, String slug) {
+        this.slug = slug;
+        countryName = new SimpleStringProperty(country);
+    }
+    
+    public String getCountryName () {
+        return countryName.get();
+    }
+    
+    public String getSlug () {
+        return slug;
     }
 }
