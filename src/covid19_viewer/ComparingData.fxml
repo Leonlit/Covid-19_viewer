@@ -8,26 +8,21 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane id="AnchorPane" prefHeight="640.0" prefWidth="1100.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="covid19_viewer.ComparingDataController">
+<AnchorPane id="AnchorPane" fx:id="mainPane" prefHeight="640.0" prefWidth="1100.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="covid19_viewer.ComparingDataController">
    <children>
       <ComboBox fx:id="countriesList" layoutX="29.0" layoutY="36.0" nodeOrientation="LEFT_TO_RIGHT" prefWidth="150.0" promptText="Countries" />
-      <Label layoutX="226.0" layoutY="38.0" text="Comparing">
-         <font>
-            <Font name="Gill Sans MT Bold Italic" size="18.0" />
-         </font>
-      </Label>
-      <Label fx:id="firstCont" layoutX="342.0" layoutY="25.0" prefHeight="47.0" prefWidth="286.0" style="-fx-border-color: red; -fx-padding: 10; -fx-border-width: 3;">
+      <Label fx:id="firstCont" layoutX="219.0" layoutY="25.0" prefHeight="47.0" prefWidth="400.0" style="-fx-border-color: red; -fx-padding: 10; -fx-border-width: 3;">
          <font>
             <Font name="Gill Sans MT Bold Italic" size="18.0" />
          </font>
       </Label>
       <Button layoutX="53.0" layoutY="82.0" mnemonicParsing="false" onAction="#addToCompare" text="Add to compare" />
-      <Label fx:id="secondCont" layoutX="342.0" layoutY="84.0" prefHeight="47.0" prefWidth="286.0" style="-fx-border-color: yellow; -fx-padding: 10; -fx-border-width: 3;">
+      <Label fx:id="secondCont" layoutX="219.0" layoutY="84.0" prefHeight="47.0" prefWidth="400.0" style="-fx-border-color: yellow; -fx-padding: 10; -fx-border-width: 3;">
          <font>
             <Font name="Gill Sans MT Bold Italic" size="18.0" />
          </font>
       </Label>
-      <Label fx:id="thirdCont" layoutX="342.0" layoutY="142.0" prefHeight="47.0" prefWidth="286.0" style="-fx-border-color: lightgreen; -fx-padding: 10; -fx-border-width: 3;">
+      <Label fx:id="thirdCont" layoutX="219.0" layoutY="142.0" prefHeight="47.0" prefWidth="400.0" style="-fx-border-color: lightgreen; -fx-padding: 10; -fx-border-width: 3;">
          <font>
             <Font name="Gill Sans MT Bold Italic" size="18.0" />
          </font>
@@ -37,18 +32,17 @@
       <CheckBox fx:id="deathsT" layoutX="852.0" layoutY="139.0" mnemonicParsing="false" prefWidth="103.0" text="Deaths Number" />
       <CheckBox fx:id="recoveredT" layoutX="852.0" layoutY="165.0" mnemonicParsing="false" text="Recovered Number" />
       <CheckBox fx:id="activeT" layoutX="852.0" layoutY="192.0" mnemonicParsing="false" prefHeight="17.0" prefWidth="87.0" text="Active Cases" />
-      <Button layoutX="854.0" layoutY="68.0" mnemonicParsing="false" text="Show Selected" />
+      <Button layoutX="854.0" layoutY="68.0" mnemonicParsing="false" onAction="#ConstructGraph" text="Show Selected" />
       <ScrollPane fx:id="graphCont" fitToHeight="true" fitToWidth="true" layoutX="29.0" layoutY="230.0" AnchorPane.bottomAnchor="26.0" AnchorPane.leftAnchor="29.0" AnchorPane.rightAnchor="29.0" AnchorPane.topAnchor="230.0">
          <content>
             <AnchorPane fx:id="graphPlace" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
          </content>
       </ScrollPane>
-      <Button fx:id="hide1" layoutX="651.0" layoutY="36.0" mnemonicParsing="false" text="Hide" />
-      <Button fx:id="hide2" layoutX="651.0" layoutY="95.0" mnemonicParsing="false" text="Hide" />
-      <Button fx:id="hide3" layoutX="651.0" layoutY="153.0" mnemonicParsing="false" text="Hide" />
-      <Button fx:id="del1" layoutX="717.0" layoutY="36.0" mnemonicParsing="false" text="delete" />
-      <Button fx:id="del2" layoutX="717.0" layoutY="95.0" mnemonicParsing="false" text="delete" />
-      <Button fx:id="del3" layoutX="717.0" layoutY="153.0" mnemonicParsing="false" text="delete" />
-      <Button layoutX="436.0" layoutY="197.0" mnemonicParsing="false" text="Construct Graph" />
+      <Button fx:id="hide1" layoutX="651.0" layoutY="36.0" mnemonicParsing="false" onAction="#hideData" text="Hide" />
+      <Button fx:id="hide2" layoutX="651.0" layoutY="95.0" mnemonicParsing="false" onAction="#hideData" text="Hide" />
+      <Button fx:id="hide3" layoutX="651.0" layoutY="153.0" mnemonicParsing="false" onAction="#hideData" text="Hide" />
+      <Button fx:id="del1" layoutX="717.0" layoutY="36.0" mnemonicParsing="false" onAction="#removeData" text="delete" />
+      <Button fx:id="del2" layoutX="717.0" layoutY="95.0" mnemonicParsing="false" onAction="#removeData" text="delete" />
+      <Button fx:id="del3" layoutX="717.0" layoutY="153.0" mnemonicParsing="false" onAction="#removeData" text="delete" />
    </children>
 </AnchorPane>

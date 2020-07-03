@@ -5,6 +5,7 @@
  */
 package covid19_viewer;
 
+import java.util.ArrayList;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 
@@ -78,5 +79,40 @@ class CountriesData {
     
     public String getSlug () {
         return slug;
+    }
+}
+
+class CompareData extends CountriesData{
+    private ArrayList<Integer> allCases, allDeaths, allRecovered, allActive;
+    private ArrayList<String> dates;
+            
+    public CompareData (String country, String slug, ArrayList<Integer> allCases, ArrayList<Integer> allDeaths,
+                        ArrayList<Integer> allRecovered, ArrayList<Integer> allActive, ArrayList<String> dates){
+        super(country, slug);
+        this.allCases = allCases;
+        this.allDeaths = allDeaths;
+        this.allRecovered = allRecovered;
+        this.allActive = allActive;
+        this.dates = dates;
+    }
+    
+    public ArrayList<Integer> getAllCases () {
+        return allCases;
+    }
+    
+    public ArrayList<Integer> getAllDeaths () {
+        return allDeaths;
+    }
+    
+    public ArrayList<Integer> getAllRecovered() {
+        return allRecovered;
+    }
+    
+    public ArrayList<Integer> getAllActive () {
+        return allActive;
+    }
+    
+    public ArrayList<String> getAllDates () {
+        return dates;
     }
 }
