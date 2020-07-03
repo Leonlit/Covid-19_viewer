@@ -45,7 +45,6 @@ import org.json.JSONException;
  */
 public class CountryViewController implements Initializable {
     
-    private int timeOut = 0;
     private CountryData data;
     private ArrayList<Integer> allCases, allDeaths, allRecovered, allActive;
     private ArrayList<String> dates;
@@ -131,6 +130,7 @@ public class CountryViewController implements Initializable {
     
     @FXML
     private void showAllBack () {
+        graphPlace.getChildren().clear();
         drawInitialLineChart(allCases, allDeaths, allRecovered, allActive, dates);
     }
     
@@ -165,7 +165,6 @@ public class CountryViewController implements Initializable {
     private void showDetailedData (int forced) {
         final String apiURL = "https://api.covid19api.com/total/country/" + data.getSlug();
         String result = FileManagement.getFromFile(data.getSlug());
-        
         try {
             if (result.equals("") || result == "" || forced == 1) {
                 URL website = new URL(apiURL);
@@ -201,11 +200,16 @@ public class CountryViewController implements Initializable {
             System.out.println("Access point to the API has been changed. Searching for data history in repository");
         } catch (IOException ex) {
             System.out.println("Unable to connect with the API's server");
+            result = FileManagement.getFromFile(data.getSlug(), 1);
+            forced = 1;
         } finally {
             if (!(result.equals("") || result == "")) {
-                setupDetailedGraph(result);
+                if (forced == 1) {
+                    ShowError.error("Unable to fetch new data from server!!!", "Error: Unable to fetch new data from server, currently using old data for " + data.getSlug());
+                }
+                setupDetailedGraph(result, data.getCountryName());
             }else {
-                //pop up error
+                ShowError.error("No data available!!!" ,"Couldn't load API data and there's no history data for " + data.getSlug());
             }
         }
     }
@@ -214,7 +218,7 @@ public class CountryViewController implements Initializable {
         String globalLegends[] = {"New Confirmed", "New Deaths", "New Recovered", "Total Confirmed", "Total Active", "Total Deaths", "Total Recovered"};
 
         //since everthing in JSON is string, we'll need to get the string one by one RIP lel.
-        int globalStats[] = { 
+        int countryStats[] = { 
                                 data.getNewCases(),
                                 data.getNewDeaths(),
                                 data.getNewRecovered(),
@@ -223,16 +227,15 @@ public class CountryViewController implements Initializable {
                                 data.getTotalDeaths(),
                                 data.getTotalRecovered()
                                 };
-        timeOut = 0;
-        MainPageController.drawPieGraph(Arrays.copyOfRange(globalStats, 0, 3), 
+        MainPageController.drawPieGraph(Arrays.copyOfRange(countryStats, 0, 3), 
                                         Arrays.copyOfRange(globalLegends, 0, 3),
                                         newChart, mainPane);
-        MainPageController.drawPieGraph(Arrays.copyOfRange(globalStats, 4, 7),
+        MainPageController.drawPieGraph(Arrays.copyOfRange(countryStats, 4, 7),
                                         Arrays.copyOfRange(globalLegends, 4, 7),
                                         totalChart, mainPane);
     }
     
-    private void setupDetailedGraph (String result) {
+    private void setupDetailedGraph (String result, String country) {
         try {
             allCases = new ArrayList<Integer>();
             allDeaths = new ArrayList<Integer>();
@@ -248,19 +251,14 @@ public class CountryViewController implements Initializable {
                 allActive.add(data.getJSONObject(x).getInt("Active"));
                 dates.add(data.getJSONObject(x).getString("Date").substring(0,10));
             }
+             country = data.getJSONObject(0).getString("Country");
 
             drawInitialLineChart(allCases, allDeaths, allRecovered, allActive, dates);
             //dataList.add(new PieChart.Data(legends[x], data[x]));
             
         }catch (JSONException ex) {
             System.out.println("File Integrity changed, requesting new data from server");
-            if (timeOut < 4){
-                showDetailedData(1);
-                timeOut++;
-            }else {
-                //this need to be popped up
-                System.out.println("Couldn't load API data and there's no history data for the selected Item.");
-            }
+            showDetailedData(1);
         }
     }
     
@@ -271,42 +269,45 @@ public class CountryViewController implements Initializable {
         allRecovered = recovered;
         allActive = active;
         dates = legends;
-        
-        final CategoryAxis xAxis = new CategoryAxis();
-        final NumberAxis yAxis = new NumberAxis();
-        
-        LineChart<String,Number> chart = new LineChart<String,Number>(xAxis,yAxis);
-        chart.setTitle("Country Data - All");
-        
-        Series TCases= new Series();
-        TCases.setName("total Cases");
-        for (int x = 0; x < totalCases.size();x++) {
-            TCases.getData().add(new XYChart.Data(legends.get(x), totalCases.get(x)));
+        try {
+            final CategoryAxis xAxis = new CategoryAxis();
+            final NumberAxis yAxis = new NumberAxis();
+
+            LineChart<String,Number> chart = new LineChart<String,Number>(xAxis,yAxis);
+            chart.setTitle("Country Data - All");
+
+            Series TCases= new Series();
+            TCases.setName("total Cases");
+            for (int x = 0; x < totalCases.size();x++) {
+                TCases.getData().add(new XYChart.Data(legends.get(x), totalCases.get(x)));
+            }
+
+            Series DCases= new Series();
+            DCases.setName("Total Deaths");
+            for (int x = 0; x < deaths.size();x++) {
+                DCases.getData().add(new XYChart.Data(legends.get(x), deaths.get(x)));
+            }
+
+            Series RCases= new Series();
+            RCases.setName("Total Recovered");
+            for (int x = 0; x < recovered.size();x++) {
+                RCases.getData().add(new XYChart.Data(legends.get(x), recovered.get(x)));
+            }
+
+            Series ACases= new Series();
+            ACases.setName("Total Active");
+            for (int x = 0; x < active.size();x++) {
+                ACases.getData().add(new XYChart.Data(legends.get(x), active.get(x)));
+            }
+
+            chart.setLegendVisible(true);
+            //chart.getData().
+            chart.getData().addAll(TCases, DCases, RCases, ACases);
+
+            setupLineChart(chart);
+        }catch (NullPointerException ex){
+            ShowError.error("No data available for graph!!!" ,"Couldn't load API data and there's no history data for detailed data on " + data.getCountryName());
         }
-        
-        Series DCases= new Series();
-        DCases.setName("Total Deaths");
-        for (int x = 0; x < deaths.size();x++) {
-            DCases.getData().add(new XYChart.Data(legends.get(x), deaths.get(x)));
-        }
-        
-        Series RCases= new Series();
-        RCases.setName("Total Recovered");
-        for (int x = 0; x < recovered.size();x++) {
-            RCases.getData().add(new XYChart.Data(legends.get(x), recovered.get(x)));
-        }
-        
-        Series ACases= new Series();
-        ACases.setName("Total Active");
-        for (int x = 0; x < active.size();x++) {
-            ACases.getData().add(new XYChart.Data(legends.get(x), active.get(x)));
-        }
-        
-        chart.setLegendVisible(true);
-        //chart.getData().
-        chart.getData().addAll(TCases, DCases, RCases, ACases);
-        
-        setupLineChart(chart);
     }
     
     private void setupLineChart (LineChart<String,Number> chart) {

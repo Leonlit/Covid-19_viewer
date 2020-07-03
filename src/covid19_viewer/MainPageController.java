@@ -117,7 +117,7 @@ public class MainPageController implements Initializable {
         
         countryData.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         //loading main page
-        getGlobalData(-1);
+        getGlobalData(0);
     }
     
     private void getGlobalData (int forced) {
@@ -151,7 +151,7 @@ public class MainPageController implements Initializable {
                     FileManagement.saveIntoFile(result, "global");
                 }
             }else {
-                System.out.println("Using History Data");
+                System.out.println("Using History Data for global stats");
             }
         } catch (MalformedURLException ex) {
             //remember to change to custom error handling
@@ -159,11 +159,15 @@ public class MainPageController implements Initializable {
         } catch (IOException | RuntimeException ex) {
             System.out.println("Unable to connect with the API's server, searching for history data in directory");
             result = FileManagement.getFromFile("global", 1);
+            
         }finally {
             if (!(result.equals("") || result == "")) {
+                if (forced == 1) {
+                    ShowError.error("Unable to fetch new data from server!!!", "Error: Unable to fetch new data from server, currently using old data for global stats");
+                }
                 setupMainPage(result);
             }else {
-                //pop up error
+                ShowError.error("No data available!!!" ,"Couldn't load API data and there's no history data for global stats");
             }
         }
     }
@@ -197,12 +201,7 @@ public class MainPageController implements Initializable {
             timeOut = 0;
         }catch (JSONException ex) {
             System.out.println("File Integrity changed, requesting new data from server");
-            if (timeOut < 4){
-                getGlobalData(1);
-                timeOut++;
-            }else {
-                System.out.println("Couldn't load API data and there's no history data for the selected Item.");
-            }
+            getGlobalData(1);
         }
     }
     
@@ -260,22 +259,27 @@ public class MainPageController implements Initializable {
         String countryName, countrySlug, date;
         ObservableList<CountryData> dataList = FXCollections.observableArrayList();
         
-        for (int i = 0; i < data.length(); i++) {
-            countryName = data.getJSONObject(i).getString("Country");
-            countrySlug = data.getJSONObject(i).getString("Slug");
-            newCases = data.getJSONObject(i).getInt("NewConfirmed");
-            newDeaths = data.getJSONObject(i).getInt("NewDeaths");
-            newRecovered = data.getJSONObject(i).getInt("NewRecovered");
-            totalCases = data.getJSONObject(i).getInt("TotalConfirmed");
-            totalDeaths = data.getJSONObject(i).getInt("TotalDeaths");
-            totalRecovered = data.getJSONObject(i).getInt("TotalRecovered");
-            date = data.getJSONObject(i).getString("Date");
-            activeCases = totalCases - totalDeaths - totalRecovered;
-            dataList.add(new CountryData(countryName, countrySlug, newCases, newDeaths, newRecovered,
-                        activeCases, totalCases, totalDeaths, totalRecovered, date));
+        try {
+            for (int i = 0; i < data.length(); i++) {
+                countryName = data.getJSONObject(i).getString("Country");
+                countrySlug = data.getJSONObject(i).getString("Slug");
+                newCases = data.getJSONObject(i).getInt("NewConfirmed");
+                newDeaths = data.getJSONObject(i).getInt("NewDeaths");
+                newRecovered = data.getJSONObject(i).getInt("NewRecovered");
+                totalCases = data.getJSONObject(i).getInt("TotalConfirmed");
+                totalDeaths = data.getJSONObject(i).getInt("TotalDeaths");
+                totalRecovered = data.getJSONObject(i).getInt("TotalRecovered");
+                date = data.getJSONObject(i).getString("Date");
+                activeCases = totalCases - totalDeaths - totalRecovered;
+                dataList.add(new CountryData(countryName, countrySlug, newCases, newDeaths, newRecovered,
+                            activeCases, totalCases, totalDeaths, totalRecovered, date));
+            }
+        }catch (JSONException ex) {
+            System.out.println("Unable to connect with the API's server, searching for history data in directory");
+            getGlobalData(1);
+        }finally {
+            countryData.setItems(dataList);
         }
-        
-        countryData.setItems(dataList);
     }
     
 }

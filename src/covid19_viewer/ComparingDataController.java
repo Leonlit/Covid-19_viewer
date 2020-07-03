@@ -117,8 +117,17 @@ public class ComparingDataController implements Initializable {
     }
     
     @FXML
-    private void ConstructGraph () {
-        
+    private void drawAll () {
+        casesT.setSelected(true);
+        recoveredT.setSelected(true);
+        deathsT.setSelected(true);
+        activeT.setSelected(true);
+        constructGraph();
+    }
+    
+    @FXML
+    private void constructGraph () {
+        try {
         graphPlace.getChildren().clear();
         String checked = "";
         String legends[] = {"Total Cases", "Total Deaths", "Total Recovered", "Total Active"};
@@ -145,17 +154,17 @@ public class ComparingDataController implements Initializable {
             
             ArrayList<CountriesData> countryList = new ArrayList<CountriesData>();
             countryLegends.clear();
-            if (!firstCont.isDisabled()) {
+            if (!firstCont.isDisabled() && !firstCont.getText().equals("")) {
                 countryList.add(dataCont.get(0));
             }
-            if (!secondCont.isDisabled()) {
+            if (!secondCont.isDisabled() && !secondCont.getText().equals("")) {
                 countryList.add(dataCont.get(1));
             }
-            if (!thirdCont.isDisabled()) {
+            if (!thirdCont.isDisabled() && !thirdCont.getText().equals("")) {
                 countryList.add(dataCont.get(2));
             }
             
-            ArrayList<CompareData> parsedData = getCountriesData(countryList);
+            ArrayList<CompareData> parsedData = getCountriesData(countryList, 0);
             
             ArrayList<ArrayList<Integer>> options = new ArrayList<ArrayList<Integer>>();
             for (int country = 0; country < parsedData.size();country++) {
@@ -202,10 +211,13 @@ public class ComparingDataController implements Initializable {
             }
             setupLineChart(chart);
         }
+        }catch (RuntimeException ex) {
+            System.out.println("Error when loading history data");
+        }
         
     }
     
-    private ArrayList<CompareData> getCountriesData (ArrayList<CountriesData> countries) {
+    private ArrayList<CompareData> getCountriesData (ArrayList<CountriesData> countries, int forced) {
         int timeOut = 0;
         ArrayList<String> data = new ArrayList<String>();
         
@@ -214,7 +226,7 @@ public class ComparingDataController implements Initializable {
             String result = FileManagement.getFromFile(countries.get(country).getSlug());
 
             try {
-                if (result.equals("") || result == "") {
+                if (result.equals("") || result == "" || forced == 1) {
                     URL website = new URL(apiURL);
                     HttpURLConnection conn = (HttpURLConnection) website.openConnection();
                     conn.setRequestMethod("GET");
@@ -248,13 +260,20 @@ public class ComparingDataController implements Initializable {
                 System.out.println("Access point to the API has been changed. Searching for data history in repository");
             } catch (IOException ex) {
                 System.out.println("Unable to connect with the API's server");
+                result = FileManagement.getFromFile(countries.get(country).getSlug(), 1);
+                forced = 1;
             } finally {
                 if (!(result.equals("") || result == "")) {
+                    if (forced == 1) {
+                        ShowError.error("Unable to fetch new data from server!!!", "Error: Unable to fetch new data from server, currently using old data for " + countries.get(country).getCountryName());
+                    }
                     data.add(result);
                     System.out.println("getted " + countries.get(country).getCountryName());
                 }else {
                     if (timeOut > 3) {
-                        //error
+                        ShowError.error("Error, No data available!!!", "Couldn't load API data and there's no history data for " + countries.get(country).getCountryName());
+                        countries.remove(country);
+                        country--;
                     }else {
                         timeOut++;
                         country--;
@@ -268,8 +287,8 @@ public class ComparingDataController implements Initializable {
     
     private ArrayList<CompareData> parseData (ArrayList<String> result, ArrayList<CountriesData> countries) {
         ArrayList<CompareData> parsed = new ArrayList<CompareData>();
-        int counter = 0, timeOut=0;
-        for (int x = 0;x<countries.size();x++) {
+        int timeOut=0;
+        for (int x = 0;x<countries.size();) {
             try {
                 ArrayList<Integer> allCases = new ArrayList<Integer>();
                 ArrayList<Integer> allDeaths = new ArrayList<Integer>();
@@ -286,19 +305,22 @@ public class ComparingDataController implements Initializable {
                     dates.add(json.getJSONObject(y).getString("Date").substring(0,10));
                 }
                 
-                String country = countries.get(counter).getCountryName();
-                String slug = countries.get(counter).getSlug();
-                counter++;
-
+                String country = countries.get(x).getCountryName();
+                String slug = countries.get(x).getSlug();
+                x++;
                 parsed.add(new CompareData(country, slug, allCases, allDeaths, allRecovered, allActive, dates));
 
             }catch (JSONException ex) {
                 System.out.println("File Integrity changed, requesting new data from server");
+                parsed = getCountriesData(countries, 1);
                 timeOut++;
                 if (timeOut == 4){
                     //this need to be popped up
-                    System.out.println("Couldn't load API data and there's no history data for the selected Item.");
+                    ShowError.error("Error, No data available!!!", "Couldn't load API data and there's no history data for " + countries.get(x).getSlug());
                 }
+            }catch (RuntimeException ex) {
+                x++;
+                ShowError.error("Error, No data available!!!", "Couldn't load API data and there's no history data for " + countries.get(x).getSlug());
             }
         }
         return parsed;
@@ -363,7 +385,7 @@ public class ComparingDataController implements Initializable {
             System.out.println("Access point to the API has been changed. Searching for data history in repository");
         } catch (IOException | RuntimeException ex) {
             System.out.println("Unable to connect with the API's server, searching for history data in directory");
-            result = FileManagement.getFromFile("global", 1);
+            result = FileManagement.getFromFile("countries", 1);
         }finally {
             if (!(result.equals("") || result == "")) {
                 setupDropdown(result);
