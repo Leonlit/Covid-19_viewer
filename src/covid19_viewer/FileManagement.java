@@ -52,7 +52,7 @@ public class FileManagement {
                 System.out.println("Try getting History Data");
             }
         }catch (IOException ex) {
-            //no cache data for this type of data
+            System.out.println("Error when getting data from file");
         }
         return data;
     }
@@ -67,7 +67,7 @@ public class FileManagement {
             data = input.nextLine();
             System.out.println("Forcefully Getting History Data");
         }catch (IOException ex) {
-            //no cache data for this type of data
+            System.out.println("Error when getting data from file");
         }
         return data;
     }
