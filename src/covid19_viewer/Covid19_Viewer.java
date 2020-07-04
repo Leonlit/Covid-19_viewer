@@ -5,17 +5,10 @@
  */
 package covid19_viewer;
 
-import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Label;
-import javafx.scene.control.ToolBar;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 /**
@@ -35,7 +28,7 @@ public class Covid19_Viewer extends Application {
         controller.setupData(stage);
         Scene countryView = new Scene(root);
         stage.setScene(countryView);
-        stage.setTitle("Covid-19 Analyser");
+        stage.setTitle("Covid-19 Analyser - login page");
         stage.show();
     }
 

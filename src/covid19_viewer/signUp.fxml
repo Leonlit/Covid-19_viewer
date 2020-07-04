@@ -2,7 +2,10 @@
 
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
 
@@ -10,18 +13,23 @@
    <children>
       <AnchorPane id="AnchorPane" prefHeight="656.0" prefWidth="942.0">
          <children>
-            <Label layoutX="277.0" layoutY="434.0" text="Username" />
-            <Label layoutX="277.0" layoutY="487.0" text="Password" />
-            <TextField fx:id="user" layoutX="379.0" layoutY="427.0" prefHeight="39.0" prefWidth="224.0" promptText="username" />
-            <TextField fx:id="pass" layoutX="379.0" layoutY="480.0" promptText="password" />
-            <Button layoutX="603.0" layoutY="480.0" mnemonicParsing="false" onAction="#signUp" text="Next" />
-            <Label layoutX="419.0" layoutY="340.0" text="Sign Up">
+            <Label layoutX="428.0" layoutY="371.0" text="Sign Up" textFill="#333333">
                <font>
-                  <Font name="Berlin Sans FB" size="33.0" />
+                  <Font name="Bernard MT Condensed" size="33.0" />
                </font>
             </Label>
             <Label layoutX="282.0" layoutY="545.0" text="Close this window if you already had an account and would like to login" />
+            <ImageView fitHeight="249.0" fitWidth="492.0" layoutX="244.0" layoutY="93.0" pickOnBounds="true" preserveRatio="true">
+               <image>
+                  <Image url="@output-onlinepngtools.png" />
+               </image>
+            </ImageView>
          </children>
       </AnchorPane>
+      <Label layoutX="287.0" layoutY="444.0" text="Username" />
+      <Label layoutX="287.0" layoutY="497.0" text="Password" />
+      <TextField fx:id="user" layoutX="389.0" layoutY="437.0" prefHeight="39.0" prefWidth="286.0" promptText="username" />
+      <PasswordField fx:id="pass" layoutX="389.0" layoutY="493.0" prefHeight="25.0" prefWidth="225.0" promptText="password" />
+      <Button layoutX="634.0" layoutY="493.0" mnemonicParsing="false" onAction="#signUp" text="Next" />
    </children>
 </AnchorPane>

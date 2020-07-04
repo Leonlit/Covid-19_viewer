@@ -198,7 +198,7 @@ public class CountryViewController implements Initializable {
         } finally {
             if (!(result.equals("") || result == "")) {
                 if (forced == 1) {
-                    ShowError.error("Unable to fetch new data from server!!!", "Error: Unable to fetch new data from server, currently using old data for " + data.getSlug());
+                    ShowError.error("Unable to fetch new data from API server!!!", "Error: Unable to fetch new data from server, currently using old data for " + data.getSlug());
                 }
                 setupDetailedGraph(result, data.getCountryName());
             }else {

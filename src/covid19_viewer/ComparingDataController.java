@@ -189,8 +189,8 @@ public class ComparingDataController implements Initializable {
 
             LineChart<String,Number> chart = new LineChart<String,Number>(xAxis,yAxis);
             String title = "";
-            for (int x = 0;x< parsedData.size();x++) {
-                title += parsedData.get(x).getCountryName() + ", ";
+            for (int x = 0;x< countryList.size();x++) {
+                title += countryList.get(x).getCountryName() + ", ";
             }
             title = title.substring(0, title.length() - 2);
             chart.setTitle("Comparing Data - " + title);
@@ -263,7 +263,7 @@ public class ComparingDataController implements Initializable {
             } finally {
                 if (!(result.equals("") || result == "")) {
                     if (forced == 1) {
-                        ShowError.error("Unable to fetch new data from server!!!", "Error: Unable to fetch new data from server, currently using old data for " + countries.get(country).getCountryName());
+                        ShowError.error("Unable to fetch new data from API server!!!", "Error: Unable to fetch new data from server, currently using old data for " + countries.get(country).getCountryName());
                     }
                     data.add(result);
                     System.out.println("getted " + countries.get(country).getCountryName());

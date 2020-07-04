@@ -119,7 +119,7 @@ public class LoginController implements Initializable {
         vBox.getChildren().add(root);
         Scene scene = new Scene(vBox);
 
-        stage.setTitle("Covid-19 Analyser");
+        stage.setTitle("Covid-19 Analyser - main page");
         stage.setScene(scene);
         
         mainStage.close();

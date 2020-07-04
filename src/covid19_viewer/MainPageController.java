@@ -130,8 +130,6 @@ public class MainPageController implements Initializable {
 
                 int responseCode = conn.getResponseCode(); //200 means ok
                 if (responseCode != 200) {
-                    //remember to make a new custom error window for this refer last project
-                    //implement various code response later
                     throw new RuntimeException("HttpResponseCode: " + responseCode);
                 }else {
                     BufferedReader r  = new BufferedReader(new InputStreamReader(conn.getInputStream(), Charset.forName("UTF-8")));
@@ -158,7 +156,7 @@ public class MainPageController implements Initializable {
         }finally {
             if (!(result.equals("") || result == "")) {
                 if (forced == 1) {
-                    ShowError.error("Unable to fetch new data from server!!!", "Error: Unable to fetch new data from server, currently using old data for global stats");
+                    ShowError.error("Unable to fetch new data from API server!!!", "Error: Unable to fetch new data from server, currently using old data for global stats");
                 }
                 setupMainPage(result);
             }else {

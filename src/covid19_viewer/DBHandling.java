@@ -22,7 +22,6 @@ public class DBHandling {
     private final String HOST = "jdbc:derby://localhost:1527/Assignment_manager";
     private final String USER = "leonlit";
     private final String PASSWORD = "Nw>u)tp\\tvu4$Sb_";
-    //public ArrayList<ParsedData> data = new ArrayList<ParsedData>();
     
     public int login(String username, String password) throws IOException {
         int stats = -1;
@@ -105,7 +104,7 @@ public class DBHandling {
             pstmt.setString(1, username);
             ResultSet rs = pstmt.executeQuery();
             
-            if(rs.next()) {
+            if(!rs.next()) {
                 System.out.println("username available for sign up");
             }else {
                 stats = true;
