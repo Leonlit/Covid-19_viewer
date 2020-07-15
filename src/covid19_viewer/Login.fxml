@@ -19,11 +19,6 @@
       <PasswordField fx:id="pass" layoutX="379.0" layoutY="483.0" prefHeight="25.0" prefWidth="225.0" promptText="password" />
       <Button layoutX="624.0" layoutY="483.0" mnemonicParsing="false" onAction="#checkLogin" text="Next" />
       <Hyperlink layoutX="391.0" layoutY="548.0" onAction="#ShowSignUp" text="Do not have an account? Click here. " />
-      <Label layoutX="453.0" layoutY="340.0" text="Login" textFill="#333333">
-         <font>
-            <Font name="Berlin Sans FB" size="33.0" />
-         </font>
-      </Label>
       <ImageView fitHeight="249.0" fitWidth="492.0" layoutX="254.0" layoutY="103.0" pickOnBounds="true" preserveRatio="true">
          <image>
             <Image url="@output-onlinepngtools.png" />
@@ -32,5 +27,10 @@
             <Rectangle2D />
          </viewport>
       </ImageView>
+      <Label layoutX="457.0" layoutY="381.0" text="Login" textFill="#333333">
+         <font>
+            <Font name="Bernard MT Condensed" size="33.0" />
+         </font>
+      </Label>
    </children>
 </AnchorPane>

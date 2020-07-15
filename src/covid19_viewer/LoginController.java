@@ -17,6 +17,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
+import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToolBar;
 import javafx.scene.input.MouseEvent;
@@ -31,10 +32,11 @@ import javafx.stage.WindowEvent;
  */
 public class LoginController implements Initializable {
     
-    @FXML private TextField user, pass;
+    @FXML private TextField user;
+    @FXML private PasswordField pass;
     @FXML private Stage mainStage;
     
-    private DBHandling DB = new DBHandling();
+    private DBHandling DB;
     
     public void setupData(Stage stage) {
         this.mainStage = stage;
@@ -128,7 +130,8 @@ public class LoginController implements Initializable {
     
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        // TODO
+        DB = new DBHandling();
+        DB.testConnection();
     }
  
     

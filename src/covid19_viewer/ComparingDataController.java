@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.ResourceBundle;
+import java.util.concurrent.TimeUnit;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -162,7 +163,9 @@ public class ComparingDataController implements Initializable {
                 countryList.add(dataCont.get(2));
             }
             
-            ArrayList<CompareData> parsedData = getCountriesData(countryList, 0);
+            ArrayList<CompareData> parsedData = new ArrayList<CompareData>();
+            
+            parsedData = getCountriesData(countryList, 0);
             
             ArrayList<ArrayList<Integer>> options = new ArrayList<ArrayList<Integer>>();
             for (int country = 0; country < parsedData.size();country++) {
@@ -210,7 +213,7 @@ public class ComparingDataController implements Initializable {
             setupLineChart(chart);
         }
         }catch (RuntimeException ex) {
-            System.out.println("Error when loading history data");
+            System.out.println("Error when loading history data" + ex.getMessage());
         }
         
     }
@@ -248,6 +251,7 @@ public class ComparingDataController implements Initializable {
                         }
 
                         result = sb.toString();
+                        System.out.println("used api data");
                         FileManagement.saveIntoFile(result, countries.get(country).getSlug());
                     }
                 }else {
@@ -266,6 +270,11 @@ public class ComparingDataController implements Initializable {
                         ShowError.error("Unable to fetch new data from API server!!!", "Error: Unable to fetch new data from server, currently using old data for " + countries.get(country).getCountryName());
                     }
                     data.add(result);
+                    try {
+                        TimeUnit.SECONDS.sleep(2);
+                    } catch (InterruptedException ex) {
+                        System.out.println("Unable to sleep for awhile");
+                    }
                     System.out.println("getted " + countries.get(country).getCountryName());
                 }else {
                     if (timeOut > 3) {
