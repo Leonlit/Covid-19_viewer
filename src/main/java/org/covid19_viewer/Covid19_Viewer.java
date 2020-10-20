@@ -5,6 +5,7 @@
  */
 package org.covid19_viewer;
 
+import java.net.URL;
 import static javafx.application.Application.launch;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -12,10 +13,6 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
-/**
- *
- * @author User
- */
 public class Covid19_Viewer extends Application {
     
     @Override
@@ -28,6 +25,10 @@ public class Covid19_Viewer extends Application {
         //Pass whatever data you want. You can have multiple method calls here
         controller.setupData(stage);
         Scene countryView = new Scene(root);
+        
+        URL url = getClass().getResource("index.css");
+        String css = url.toExternalForm(); 
+        countryView.getStylesheets().add(css);
         stage.setScene(countryView);
         stage.setTitle("Covid-19 Analyser - login page");
         stage.show();

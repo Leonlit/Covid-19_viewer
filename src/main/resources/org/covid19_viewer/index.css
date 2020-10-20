@@ -1,0 +1,3 @@
+.label:hover, .button:hover, .combo-box:hover, .chart-pie:hover, .check-box:hover {
+    -fx-cursor: hand;
+}

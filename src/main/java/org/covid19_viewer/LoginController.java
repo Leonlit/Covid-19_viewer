@@ -120,6 +120,10 @@ public class LoginController implements Initializable {
         VBox vBox = new VBox(toolBar);
         vBox.getChildren().add(root);
         Scene scene = new Scene(vBox);
+        
+        URL url = getClass().getResource("index.css");
+        String css = url.toExternalForm(); 
+        scene.getStylesheets().add(css);
 
         stage.setTitle("Covid-19 Analyser - main page");
         stage.setScene(scene);

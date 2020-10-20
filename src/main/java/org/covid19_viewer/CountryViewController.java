@@ -309,7 +309,11 @@ public class CountryViewController implements Initializable {
                 for (XYChart.Data<String, Number> item: serie.getData()){
                     item.getNode().addEventHandler(MouseEvent.MOUSE_PRESSED, (MouseEvent e) -> {
                         caption.setTextFill(Color.BLACK);
-                        caption.setStyle("-fx-font: 24 arial;");
+                        caption.setStyle("-fx-font: 24 arial;" + 
+                                        "-fx-padding: 5px;" + 
+                                        "-fx-border-radius: 5px;" + 
+                                        "-fx-background-radius: 5px;" +
+                                        "-fx-background-color: rgba(255, 255, 255, 0.5);");
                         caption.setTranslateX(e.getSceneX() - 50);
                         caption.setTranslateY(e.getSceneY() - 20);
                         caption.setText(String.valueOf(item.getYValue()));

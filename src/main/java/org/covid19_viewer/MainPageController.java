@@ -99,6 +99,9 @@ public class MainPageController implements Initializable {
                         //Pass whatever data you want. You can have multiple method calls here
                         controller.setupData(rowData);
                         Scene countryView = new Scene(root);
+                        URL cssFile = getClass().getResource("index.css");
+                        String css = cssFile.toExternalForm(); 
+                        countryView.getStylesheets().add(css);
                         cont.setScene(countryView);
                         cont.setTitle("Data for " + rowData.getCountryName());
                         cont.show();
@@ -205,7 +208,6 @@ public class MainPageController implements Initializable {
                 dataList.add(new PieChart.Data(legends[x], data[x]));
             }
         }
-        
         final PieChart chart = new PieChart(dataList);
         chart.setStyle("-fx-padding:10px;-fx-insets:0px;");
         final Label caption = new Label("");
@@ -213,7 +215,11 @@ public class MainPageController implements Initializable {
             dataValue.getNode().addEventHandler(MouseEvent.MOUSE_PRESSED, (MouseEvent e) -> {
                 
                 caption.setTextFill(Color.BLUE);
-                caption.setStyle("-fx-font: 24 arial;");
+                caption.setStyle("-fx-font: 24 arial;" + 
+                                "-fx-padding: 5px;" + 
+                                "-fx-border-radius: 5px;" + 
+                                "-fx-background-radius: 5px;" +
+                                "-fx-background-color: rgba(255, 255, 255, 0.5);");
                 caption.setTranslateX(e.getSceneX() + 10);
                 caption.setTranslateY(e.getSceneY() - 20);
                 caption.setText(String.valueOf(dataValue.getPieValue()));

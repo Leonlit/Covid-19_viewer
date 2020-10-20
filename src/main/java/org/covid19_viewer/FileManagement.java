@@ -11,13 +11,21 @@ import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.Scanner;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
  * @author User
  */
 public class FileManagement {
+    
+    public FileManagement () {
+        makeDirectoryIfNotExists();
+    }
+    
     public static void saveIntoFile(String json, String filename) {
+        makeDirectoryIfNotExists();
         try {
             File directory = new File(".");
             String fileName = directory.getCanonicalPath().concat(File.separator + "historyData") 
@@ -70,5 +78,17 @@ public class FileManagement {
             System.out.println("Error when getting data from file");
         }
         return data;
+    }
+    
+    private static void makeDirectoryIfNotExists () {
+        File directory = new File(".");
+        try {
+            File dirName = new File(directory.getCanonicalPath().concat(File.separator + "historyData"));
+            if (! dirName.exists()){
+                dirName.mkdir();
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(FileManagement.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 }

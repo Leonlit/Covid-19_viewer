@@ -419,7 +419,6 @@ public class ComparingDataController implements Initializable {
         Collections.sort(dataList, getComparator());
         countriesList.setItems(dataList);
         
-        
         countriesList.setConverter(new StringConverter<CountriesData>() {
 
             @Override
