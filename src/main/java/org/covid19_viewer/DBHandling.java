@@ -3,33 +3,33 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package covid19_viewer;
+package org.covid19_viewer;
 
-/**
- *
- * @author User
- */
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class DBHandling {
-    private final String HOST = "jdbc:derby://localhost:1527/user_account";
-    private final String USER = "leonlit";
-    private final String PASSWORD = "test";
+    Connection conn;
+    
+    public DBHandling (){
+        makeSureTableExist("UsersInfo");
+    }
     
     public int login(String username, String password) throws IOException {
         int stats = -1;
         PreparedStatement pstmt = null;
         try {
-            Connection con = DriverManager.getConnection(HOST, USER, PASSWORD);
+            Class.forName("org.sqlite.JDBC");
+            conn = DriverManager.getConnection("jdbc:sqlite:users.db");
             String query = "SELECT USERNAME FROM UsersInfo WHERE USERNAME=? AND PASSWORD=?";
-            pstmt = con.prepareStatement(query);
+            pstmt = conn.prepareStatement(query);
             pstmt.setString(1, username);
             pstmt.setString(2, password);
             ResultSet results = pstmt.executeQuery();
@@ -41,6 +41,8 @@ public class DBHandling {
             }
         }catch (SQLException ex) {
             showDBErr("Unable to login!!!\n\n" + ex.getMessage());
+        }catch (ClassNotFoundException ex) {
+            showDBErr("Sqlite driver not found!!!\n\n" + ex.getMessage());
         }finally {
             if(pstmt != null) {
                 try {
@@ -62,8 +64,9 @@ public class DBHandling {
                 ShowError.error(username + " is already exists in database!!!", "The username " + username + 
                                             " already exists in the database, please use another one");
             }else {
-                Connection con = DriverManager.getConnection(HOST, USER, PASSWORD);
-                pstmt = con.prepareStatement("INSERT INTO UsersInfo"
+                Class.forName("org.sqlite.JDBC");
+                conn = DriverManager.getConnection("jdbc:sqlite:users.db");
+                pstmt = conn.prepareStatement("INSERT INTO UsersInfo"
                                            + "(USERNAME, PASSWORD) VALUES (?, ?)");
                 
                 pstmt.setString(1, username);
@@ -81,8 +84,9 @@ public class DBHandling {
         }catch (SQLException ex) {
             showDBErr("Unable to insert data into database.\n\n" + ex.getMessage());
             stats = -1;
-        }
-        finally {
+        }catch (ClassNotFoundException ex) {
+            showDBErr("Sqlite driver not found!!!\n\n" + ex.getMessage());
+        }finally {
             if(pstmt != null) {
                 try {
                     pstmt.close();
@@ -98,9 +102,10 @@ public class DBHandling {
         PreparedStatement pstmt = null;
         boolean stats = false;
         try {
-            Connection con = DriverManager.getConnection(HOST, USER, PASSWORD);
+            Class.forName("org.sqlite.JDBC");
+            conn = DriverManager.getConnection("jdbc:sqlite:users.db");
             String query = "SELECT USERNAME FROM UsersInfo where USERNAME=?";
-            pstmt = con.prepareStatement(query); 
+            pstmt = conn.prepareStatement(query); 
             pstmt.setString(1, username);
             ResultSet rs = pstmt.executeQuery();
             
@@ -112,6 +117,8 @@ public class DBHandling {
             
         }catch (SQLException ex) {
             showDBErr("Unable to check username in database.\n\n" + ex.getMessage());
+        }catch (ClassNotFoundException ex) {
+            showDBErr("Sqlite driver not found!!!\n\n" + ex.getMessage());
         }finally {
             if(pstmt != null) {
                 try {
@@ -130,10 +137,41 @@ public class DBHandling {
     
     public void testConnection () {
         try {
-            Connection con = DriverManager.getConnection(HOST, USER, PASSWORD);
-            System.out.println("database Connected!!!" + con.toString());
-        } catch (SQLException ex) {
+            Class.forName("org.sqlite.JDBC");
+            conn = DriverManager.getConnection("jdbc:sqlite:users.db");
+            System.out.println("database Connected!!!" + conn.toString());
+        }catch (SQLException ex) {
             ShowError.error("Database error notice!!!", "Error unable to connect to database.\n\n" + ex.getMessage());
+        }catch (ClassNotFoundException ex) {
+            showDBErr("Sqlite driver not found!!!\n\n" + ex.getMessage());
+        }
+    }
+    
+    //Make sure the table exists in the database to avoid error.
+    //If the table doest not exist, create the table.
+    //  @param tableName   - the name of the table to check.
+    private void makeSureTableExist (String tableName) {
+        PreparedStatement pstmt = null;
+        try {
+            Class.forName("org.sqlite.JDBC");
+            conn = DriverManager.getConnection("jdbc:sqlite:users.db");
+            String creatTableQuery = "CREATE TABLE IF NOT EXISTS " + tableName + 
+                           "(ID INTEGER not null primary key AUTOINCREMENT," +
+                            "username VARCHAR(100),password VARCHAR(255))";
+            Statement stmt = conn.createStatement();
+            stmt.execute(creatTableQuery);
+        }catch (ClassNotFoundException ex) {
+            Logger.getLogger(DBHandling.class.getName()).log(Level.SEVERE, null, ex);
+        }catch (SQLException ex) {
+            showDBErr("Unable to check username in database.\n\n" + ex.getMessage());
+        }finally {
+            if(pstmt != null) {
+                try {
+                    pstmt.close();
+                } catch (SQLException ex) {
+                    Logger.getLogger(DBHandling.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
         }
     }
 }

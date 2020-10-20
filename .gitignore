@@ -1,5 +1,9 @@
 /build/
 /dist/
-derbyclient.jar
-json-20200518.jar
-historyData/
+/Assignment_manager/
+/target/
+.vscode/
+*.db
+.settings/
+.classpath
+.project
