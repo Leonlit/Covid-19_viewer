@@ -107,7 +107,7 @@ public class CountryViewController implements Initializable {
                 title += legends[Integer.parseInt(checks[x])] + ", ";
             }
             title = title.substring(0, title.length() - 2);
-            chart.setTitle("Country Data - " + title);
+            chart.setTitle(data.getCountryName() + " Data - " + title);
 
             for (int line = 0; line < options.size();line++) {
                 Series data = new Series();
@@ -124,7 +124,7 @@ public class CountryViewController implements Initializable {
     @FXML
     private void showAllBack () {
         graphPlace.getChildren().clear();
-        drawInitialLineChart(allCases, allDeaths, allRecovered, allActive, dates);
+        drawInitialLineChart(allCases, allDeaths, allRecovered, allActive, dates, data.getCountryName());
     }
     
     /**
@@ -200,7 +200,7 @@ public class CountryViewController implements Initializable {
                 if (forced == 1) {
                     ShowError.error("Unable to fetch new data from API server!!!", "Error: Unable to fetch new data from server, currently using old data for " + data.getSlug());
                 }
-                setupDetailedGraph(result, data.getCountryName());
+                setupDetailedGraph(result);
             }else {
                 ShowError.error("No data available!!!" ,"Couldn't load API data and there's no history data for " + data.getSlug());
             }
@@ -228,7 +228,7 @@ public class CountryViewController implements Initializable {
                                         totalChart, mainPane);
     }
     
-    private void setupDetailedGraph (String result, String country) {
+    private void setupDetailedGraph (String result) {
         try {
             allCases = new ArrayList<Integer>();
             allDeaths = new ArrayList<Integer>();
@@ -244,9 +244,9 @@ public class CountryViewController implements Initializable {
                 allActive.add(data.getJSONObject(x).getInt("Active"));
                 dates.add(data.getJSONObject(x).getString("Date").substring(0,10));
             }
-             country = data.getJSONObject(0).getString("Country");
-
-            drawInitialLineChart(allCases, allDeaths, allRecovered, allActive, dates);
+            String country = data.getJSONObject(0).getString("Country");
+            
+            drawInitialLineChart(allCases, allDeaths, allRecovered, allActive, dates, country);
             //dataList.add(new PieChart.Data(legends[x], data[x]));
             
         }catch (JSONException ex) {
@@ -256,7 +256,7 @@ public class CountryViewController implements Initializable {
     }
     
     private void drawInitialLineChart (ArrayList<Integer> totalCases, ArrayList<Integer> deaths, ArrayList<Integer> recovered,
-                                        ArrayList<Integer> active, ArrayList<String> legends) {
+                                        ArrayList<Integer> active, ArrayList<String> legends, String countryName) {
         allCases = totalCases;
         allDeaths = deaths;
         allRecovered = recovered;
@@ -267,7 +267,7 @@ public class CountryViewController implements Initializable {
             final NumberAxis yAxis = new NumberAxis();
 
             LineChart<String,Number> chart = new LineChart<String,Number>(xAxis,yAxis);
-            chart.setTitle("Country Data - All");
+            chart.setTitle(countryName + " Data - All");
 
             Series TCases= new Series();
             TCases.setName("total Cases");
@@ -294,7 +294,6 @@ public class CountryViewController implements Initializable {
             }
 
             chart.setLegendVisible(true);
-            //chart.getData().
             chart.getData().addAll(TCases, DCases, RCases, ACases);
 
             setupLineChart(chart);

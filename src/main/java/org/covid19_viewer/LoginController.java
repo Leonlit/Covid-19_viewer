@@ -99,6 +99,7 @@ public class LoginController implements Initializable {
         Parent root = loader.load();
 
         ToolBar toolBar = new ToolBar();
+        toolBar.setId("cmprBtn");
 
         Label compareData = new Label("Compare countries");
         compareData.addEventHandler(MouseEvent.MOUSE_CLICKED, (MouseEvent e) -> {

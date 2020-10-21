@@ -12,12 +12,16 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.IntStream;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -47,6 +51,7 @@ public class MainPageController implements Initializable {
     
     private int timeOut = 0;
     private boolean viewingCountry = false;
+    private FilteredList<CountryData> filtered;
     
     @FXML
     private Label newCase, newDeath, newRecovered, 
@@ -67,11 +72,16 @@ public class MainPageController implements Initializable {
     @FXML private TableColumn<CountryData, Integer> TotalDeaths;
     @FXML private TableColumn<CountryData, Integer> TotalRecovered;
     
+    private ArrayList<String> countriesName = new ArrayList<String>();
+    
     @FXML
-    private void handleButtonAction(ActionEvent event) {
-        System.out.println("You clicked me!");
-        //label.setText("Hello World!");
+    private String searchCountryName () {
+        return ":";
     }
+    
+    private void setupCountryNameSearch (ArrayList<String> countryNameList) {
+        
+    } 
     
     @Override
     public void initialize(URL url, ResourceBundle rb) {
@@ -203,6 +213,7 @@ public class MainPageController implements Initializable {
     
     public static void drawPieGraph (int data[], String legends[], Pane chartLocation, AnchorPane mainPane) {
         ObservableList dataList = FXCollections.observableArrayList();
+        int total = IntStream.of(data).sum();
         for (int x = 0; x< data.length;x++) {
             if (data[x] != 0) {
                 dataList.add(new PieChart.Data(legends[x], data[x]));
@@ -213,7 +224,8 @@ public class MainPageController implements Initializable {
         final Label caption = new Label("");
         chart.getData().forEach((dataValue) -> {
             dataValue.getNode().addEventHandler(MouseEvent.MOUSE_PRESSED, (MouseEvent e) -> {
-                
+                DecimalFormat formatter = new DecimalFormat("#.00");
+                double percentage = dataValue.getPieValue()/total * 100;
                 caption.setTextFill(Color.BLUE);
                 caption.setStyle("-fx-font: 24 arial;" + 
                                 "-fx-padding: 5px;" + 
@@ -222,7 +234,7 @@ public class MainPageController implements Initializable {
                                 "-fx-background-color: rgba(255, 255, 255, 0.5);");
                 caption.setTranslateX(e.getSceneX() + 10);
                 caption.setTranslateY(e.getSceneY() - 20);
-                caption.setText(String.valueOf(dataValue.getPieValue()));
+                caption.setText(String.valueOf(formatter.format(percentage)) + "%");
                 mainPane.getChildren().add(caption);
             });
         });
@@ -255,12 +267,12 @@ public class MainPageController implements Initializable {
     
     public void setupCountryData (JSONArray data) {
         int newCases, newDeaths, newRecovered, totalCases, totalDeaths, totalRecovered, activeCases = 0;
-        String countryName, countrySlug, date;
+        String countrySlug, date;
         ObservableList<CountryData> dataList = FXCollections.observableArrayList();
         
         try {
             for (int i = 0; i < data.length(); i++) {
-                countryName = data.getJSONObject(i).getString("Country");
+                final String countryName = data.getJSONObject(i).getString("Country");
                 countrySlug = data.getJSONObject(i).getString("Slug");
                 newCases = data.getJSONObject(i).getInt("NewConfirmed");
                 newDeaths = data.getJSONObject(i).getInt("NewDeaths");
@@ -270,6 +282,7 @@ public class MainPageController implements Initializable {
                 totalRecovered = data.getJSONObject(i).getInt("TotalRecovered");
                 date = data.getJSONObject(i).getString("Date");
                 activeCases = totalCases - totalDeaths - totalRecovered;
+                countriesName.add(countryName);
                 dataList.add(new CountryData(countryName, countrySlug, newCases, newDeaths, newRecovered,
                             activeCases, totalCases, totalDeaths, totalRecovered, date));
             }
@@ -277,8 +290,9 @@ public class MainPageController implements Initializable {
             System.out.println("Unable to connect with the API's server, searching for history data in directory");
             getGlobalData(1);
         }finally {
-            countryData.setItems(dataList);
+            filtered = new FilteredList(dataList, p -> true);
+            filtered.setPredicate(p -> p.getCountryName().toLowerCase().contains("Malaysia"));
+            countryData.setItems(filtered);
         }
     }
-    
 }

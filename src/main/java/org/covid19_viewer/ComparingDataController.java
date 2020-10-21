@@ -53,7 +53,6 @@ public class ComparingDataController implements Initializable {
     @FXML private ScrollPane graphCont;
     
     private ArrayList<String> countryLegends = new ArrayList<String>();
-    private ArrayList<ArrayList<CountryData>> datas = new ArrayList<ArrayList<CountryData>>();
     private ArrayList<CountriesData> dataCont = new ArrayList<CountriesData>();
 
     @Override
