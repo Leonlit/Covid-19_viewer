@@ -10,7 +10,7 @@
 
 <AnchorPane id="AnchorPane" fx:id="mainPane" prefHeight="640.0" prefWidth="1100.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.covid19_viewer.ComparingDataController">
    <children>
-      <ComboBox fx:id="countriesList" layoutX="29.0" layoutY="36.0" nodeOrientation="LEFT_TO_RIGHT" prefWidth="150.0" promptText="Countries" />
+      <ComboBox fx:id="countriesList" editable="true" layoutX="29.0" layoutY="36.0" nodeOrientation="LEFT_TO_RIGHT" prefWidth="150.0" promptText="Countries" />
       <Label fx:id="firstCont" layoutX="219.0" layoutY="25.0" prefHeight="47.0" prefWidth="400.0" style="-fx-border-color: red; -fx-padding: 10; -fx-border-width: 3;">
          <font>
             <Font name="Gill Sans MT Bold Italic" size="18.0" />

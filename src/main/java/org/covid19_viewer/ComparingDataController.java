@@ -19,6 +19,7 @@ import java.util.ResourceBundle;
 import java.util.concurrent.TimeUnit;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -31,6 +32,8 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.paint.Color;
@@ -54,10 +57,19 @@ public class ComparingDataController implements Initializable {
     
     private ArrayList<String> countryLegends = new ArrayList<String>();
     private ArrayList<CountriesData> dataCont = new ArrayList<CountriesData>();
+    private ObservableList<CountriesData> dataList;
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         getCountriesName(0);
+    }
+    
+    private void searchCountryName (String name) {
+        FilteredList<CountriesData> filtered = new FilteredList(dataList);
+        filtered.setPredicate(p -> p.getCountryName().toLowerCase().contains(name.toLowerCase()));
+        ObservableList<CountriesData> newData = FXCollections.observableArrayList(filtered);
+        Collections.sort(newData, getComparator());
+        countriesList.setItems(newData);
     }
     
     @FXML
@@ -411,17 +423,38 @@ public class ComparingDataController implements Initializable {
             slugs.add(data.getJSONObject(x).getString("Slug"));   
         }
         
-        ObservableList<CountriesData> dataList = FXCollections.observableArrayList();
+        dataList = FXCollections.observableArrayList();
         for (int x=0;x<countries.size();x++) {
             dataList.add(new CountriesData(countries.get(x), slugs.get(x)));
         }
         Collections.sort(dataList, getComparator());
         countriesList.setItems(dataList);
         
-        countriesList.setConverter(new StringConverter<CountriesData>() {
+        countriesList.getEditor().focusedProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue) {
+                countriesList.show();
+            }else {
+                countriesList.hide();
+            }
+        });
+        
+        countriesList.setOnKeyPressed(t -> countriesList.hide());
 
+        countriesList.setOnKeyReleased((t)->{
+            KeyCode keyCode = t.getCode();
+            if (!(keyCode == KeyCode.UP || keyCode == KeyCode.DOWN ||
+                keyCode == KeyCode.RIGHT || keyCode == KeyCode.LEFT || keyCode == KeyCode.ENTER)) {
+                countriesList.show();
+                searchCountryName(countriesList.getEditor().getText());
+            }
+        });
+        
+        countriesList.setConverter(new StringConverter<CountriesData>() {
             @Override
             public String toString(CountriesData object) {
+                if (object == null) {
+                    return "";
+                }
                 return object.getCountryName();
             }
 

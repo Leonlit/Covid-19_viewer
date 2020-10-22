@@ -33,6 +33,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
@@ -51,7 +52,10 @@ public class MainPageController implements Initializable {
     
     private int timeOut = 0;
     private boolean viewingCountry = false;
-    private FilteredList<CountryData> filtered;
+    private ObservableList<CountryData> dataList;
+    
+    @FXML
+    private TextField searchBox;
     
     @FXML
     private Label newCase, newDeath, newRecovered, 
@@ -75,8 +79,10 @@ public class MainPageController implements Initializable {
     private ArrayList<String> countriesName = new ArrayList<String>();
     
     @FXML
-    private String searchCountryName () {
-        return ":";
+    private void searchCountryName () {
+        FilteredList<CountryData> filtered = new FilteredList(dataList, p -> true);
+        filtered.setPredicate(p -> p.getCountryName().toLowerCase().contains(searchBox.getText().toLowerCase()));
+        countryData.setItems(filtered);
     }
     
     private void setupCountryNameSearch (ArrayList<String> countryNameList) {
@@ -268,7 +274,7 @@ public class MainPageController implements Initializable {
     public void setupCountryData (JSONArray data) {
         int newCases, newDeaths, newRecovered, totalCases, totalDeaths, totalRecovered, activeCases = 0;
         String countrySlug, date;
-        ObservableList<CountryData> dataList = FXCollections.observableArrayList();
+        dataList = FXCollections.observableArrayList();
         
         try {
             for (int i = 0; i < data.length(); i++) {
@@ -290,9 +296,7 @@ public class MainPageController implements Initializable {
             System.out.println("Unable to connect with the API's server, searching for history data in directory");
             getGlobalData(1);
         }finally {
-            filtered = new FilteredList(dataList, p -> true);
-            filtered.setPredicate(p -> p.getCountryName().toLowerCase().contains("Malaysia"));
-            countryData.setItems(filtered);
+            countryData.setItems(dataList);
         }
     }
 }
