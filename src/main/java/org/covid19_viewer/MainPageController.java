@@ -82,7 +82,8 @@ public class MainPageController implements Initializable {
     private void searchCountryName () {
         FilteredList<CountryData> filtered = new FilteredList(dataList, p -> true);
         filtered.setPredicate(p -> p.getCountryName().toLowerCase().contains(searchBox.getText().toLowerCase()));
-        countryData.setItems(filtered);
+        ObservableList<CountriesData> newData = FXCollections.observableArrayList(filtered);
+        countryData.setItems(newData);
     }
     
     private void setupCountryNameSearch (ArrayList<String> countryNameList) {

@@ -21,6 +21,8 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
+import javafx.event.Event;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.chart.CategoryAxis;
@@ -33,8 +35,9 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.input.KeyCode;
-import javafx.scene.input.MouseButton;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.input.MouseButton;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.paint.Color;
 import javafx.util.StringConverter;
@@ -67,9 +70,13 @@ public class ComparingDataController implements Initializable {
     private void searchCountryName (String name) {
         FilteredList<CountriesData> filtered = new FilteredList(dataList);
         filtered.setPredicate(p -> p.getCountryName().toLowerCase().contains(name.toLowerCase()));
+        int rows = filtered.size();
+        countriesList.setVisibleRowCount(rows%9);
         ObservableList<CountriesData> newData = FXCollections.observableArrayList(filtered);
-        Collections.sort(newData, getComparator());
-        countriesList.setItems(newData);
+        setItems(newData);
+        if (filtered.isEmpty() || (filtered.size() == 1 && name.equals(filtered.get(0).getCountryName()))) {
+            countriesList.hide();
+        }
     }
     
     @FXML
@@ -80,6 +87,8 @@ public class ComparingDataController implements Initializable {
                 dataCont.add(selected);
                 System.out.println("added " + selected.getCountryName() + "into the list" );
             }
+            countriesList.getEditor().setText("");
+            countriesList.hide();
             updateSelectedNames();
         }catch (NullPointerException ex) {
             System.out.println("Error, no country name is selected");
@@ -427,8 +436,8 @@ public class ComparingDataController implements Initializable {
         for (int x=0;x<countries.size();x++) {
             dataList.add(new CountriesData(countries.get(x), slugs.get(x)));
         }
-        Collections.sort(dataList, getComparator());
-        countriesList.setItems(dataList);
+        
+        setItems(dataList);
         
         countriesList.getEditor().focusedProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue) {
@@ -438,14 +447,36 @@ public class ComparingDataController implements Initializable {
             }
         });
         
-        countriesList.setOnKeyPressed(t -> countriesList.hide());
+        countriesList.getSelectionModel().selectedIndexProperty().addListener((observable, oldValue, newValue) -> {
+            moveCaret(countriesList.getEditor().getText().length());
+        });
 
+        countriesList.setOnKeyPressed(t -> countriesList.hide());
         countriesList.setOnKeyReleased((t)->{
             KeyCode keyCode = t.getCode();
-            if (!(keyCode == KeyCode.UP || keyCode == KeyCode.DOWN ||
-                keyCode == KeyCode.RIGHT || keyCode == KeyCode.LEFT || keyCode == KeyCode.ENTER)) {
-                countriesList.show();
-                searchCountryName(countriesList.getEditor().getText());
+            if ( keyCode == KeyCode.UP || keyCode == KeyCode.DOWN
+                || keyCode == KeyCode.RIGHT || keyCode == KeyCode.LEFT
+                || keyCode == KeyCode.HOME
+                || keyCode == KeyCode.END || keyCode == KeyCode.TAB || keyCode == keyCode.SPACE) {
+                    return;
+            }else {
+                if(keyCode == KeyCode.BACK_SPACE){
+                    String str = countriesList.getEditor().getText();
+                    if (str != null && str.length() > 0) {
+                        str = str.substring(0, str.length());
+                    }
+                    if(str != null){
+                        countriesList.getEditor().setText(str);
+                        moveCaret(str.length());
+                    }
+                    countriesList.setValue(null);
+                }
+                
+                if(keyCode == KeyCode.ENTER && countriesList.getSelectionModel().getSelectedIndex()>-1)
+                    return;
+                
+                final String countryName = countriesList.getEditor().getText();
+                searchCountryName(countryName);
             }
         });
         
@@ -464,7 +495,16 @@ public class ComparingDataController implements Initializable {
                     ap.getCountryName().equals(string)).findFirst().orElse(null);
             }
         });
-        
+    }
+    
+    private void setItems (ObservableList<CountriesData> data) {
+        Collections.sort(data, getComparator());
+        countriesList.setItems(data);
+        countriesList.show();
+    }
+    
+    private void moveCaret(int textLength) {
+        countriesList.getEditor().positionCaret(textLength);
     }
     
     private void setupLineChart (LineChart<String,Number> chart) {
