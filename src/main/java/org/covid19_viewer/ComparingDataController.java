@@ -70,13 +70,8 @@ public class ComparingDataController implements Initializable {
     private void searchCountryName (String name) {
         FilteredList<CountriesData> filtered = new FilteredList(dataList);
         filtered.setPredicate(p -> p.getCountryName().toLowerCase().contains(name.toLowerCase()));
-        int rows = filtered.size();
-        countriesList.setVisibleRowCount(rows%9);
         ObservableList<CountriesData> newData = FXCollections.observableArrayList(filtered);
         setItems(newData);
-        if (filtered.isEmpty() || (filtered.size() == 1 && name.equals(filtered.get(0).getCountryName()))) {
-            countriesList.hide();
-        }
     }
     
     @FXML
@@ -87,7 +82,9 @@ public class ComparingDataController implements Initializable {
                 dataCont.add(selected);
                 System.out.println("added " + selected.getCountryName() + "into the list" );
             }
-            countriesList.getEditor().setText("");
+            countriesList.getSelectionModel().clearSelection();
+            countriesList.getItems().clear();
+            setItems(dataList);
             countriesList.hide();
             updateSelectedNames();
         }catch (NullPointerException ex) {
@@ -438,6 +435,7 @@ public class ComparingDataController implements Initializable {
         }
         
         setItems(dataList);
+        countriesList.hide();
         
         countriesList.getEditor().focusedProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue) {
@@ -447,11 +445,21 @@ public class ComparingDataController implements Initializable {
             }
         });
         
+        countriesList.getEditor().setOnMouseClicked(event ->{
+            if(event.getButton().equals(MouseButton.PRIMARY)){
+                if(event.getClickCount() == 2){
+                    return;
+                }
+            }
+            countriesList.show();
+        });
+        
         countriesList.getSelectionModel().selectedIndexProperty().addListener((observable, oldValue, newValue) -> {
             moveCaret(countriesList.getEditor().getText().length());
+            //countriesList.getSelectionModel().clearSelection();
         });
 
-        countriesList.setOnKeyPressed(t -> countriesList.hide());
+        //countriesList.setOnKeyPressed(t -> countriesList.hide());
         countriesList.setOnKeyReleased((t)->{
             KeyCode keyCode = t.getCode();
             if ( keyCode == KeyCode.UP || keyCode == KeyCode.DOWN
@@ -469,7 +477,7 @@ public class ComparingDataController implements Initializable {
                         countriesList.getEditor().setText(str);
                         moveCaret(str.length());
                     }
-                    countriesList.setValue(null);
+                    countriesList.getSelectionModel().clearSelection();
                 }
                 
                 if(keyCode == KeyCode.ENTER && countriesList.getSelectionModel().getSelectedIndex()>-1)
@@ -498,9 +506,17 @@ public class ComparingDataController implements Initializable {
     }
     
     private void setItems (ObservableList<CountriesData> data) {
+        int rows = data.size();
+        if (rows > 9) {
+            rows = 9;
+        }
+        countriesList.setVisibleRowCount(rows);
         Collections.sort(data, getComparator());
+        countriesList.hide();
         countriesList.setItems(data);
-        countriesList.show();
+        if (data.size() != 0) {
+            countriesList.show();
+        }
     }
     
     private void moveCaret(int textLength) {
