@@ -451,15 +451,15 @@ public class ComparingDataController implements Initializable {
                     return;
                 }
             }
-            countriesList.show();
+            if (countriesList.getItems().size() != 0) {
+                countriesList.show();
+            }
         });
         
         countriesList.getSelectionModel().selectedIndexProperty().addListener((observable, oldValue, newValue) -> {
             moveCaret(countriesList.getEditor().getText().length());
-            //countriesList.getSelectionModel().clearSelection();
         });
 
-        //countriesList.setOnKeyPressed(t -> countriesList.hide());
         countriesList.setOnKeyReleased((t)->{
             KeyCode keyCode = t.getCode();
             if ( keyCode == KeyCode.UP || keyCode == KeyCode.DOWN

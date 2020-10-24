@@ -12,8 +12,10 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.ResourceBundle;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -42,7 +44,7 @@ public class CountryViewController implements Initializable {
     private ArrayList<Integer> allCases, allDeaths, allRecovered, allActive;
     private ArrayList<String> dates;
     
-    @FXML private CheckBox casesT, deathsT, recoveredT, activeT;
+    @FXML private CheckBox casesT, deathsT, recoveredT, activeT, logChart;
     
     @FXML 
     private Label newCase, newDeath, newRecovered, 
@@ -107,13 +109,19 @@ public class CountryViewController implements Initializable {
                 title += legends[Integer.parseInt(checks[x])] + ", ";
             }
             title = title.substring(0, title.length() - 2);
-            chart.setTitle(data.getCountryName() + " Data - " + title);
+            title = data.getCountryName() + " Data - " + title;
+            if (isLogChartSelected()) {
+                title += "(Logarithm chart view)";
+            }
+            chart.setTitle(title);
 
             for (int line = 0; line < options.size();line++) {
                 Series data = new Series();
                 data.setName(legends[Integer.parseInt(checks[line])]);
+                int max = options.size();
                 for (int x = 0; x < options.get(line).size();x++) {
-                    data.getData().add(new XYChart.Data(dates.get(x), options.get(line).get(x)));
+                    double value = getBackLogValueIfSelected(options.get(line).get(x), max);
+                    data.getData().add(new XYChart.Data(dates.get(x), isLogChartSelected() ? value : (int)value ));
                 }
                 chart.getData().addAll(data);
             }
@@ -126,6 +134,8 @@ public class CountryViewController implements Initializable {
         graphPlace.getChildren().clear();
         drawInitialLineChart(allCases, allDeaths, allRecovered, allActive, dates, data.getCountryName());
     }
+    
+    @FXML
     
     /**
      * Initializes the controller class.
@@ -262,6 +272,7 @@ public class CountryViewController implements Initializable {
         allRecovered = recovered;
         allActive = active;
         dates = legends;
+        DecimalFormat formatter = new DecimalFormat("#.000");
         try {
             final CategoryAxis xAxis = new CategoryAxis();
             final NumberAxis yAxis = new NumberAxis();
@@ -272,25 +283,29 @@ public class CountryViewController implements Initializable {
             Series TCases= new Series();
             TCases.setName("total Cases");
             for (int x = 0; x < totalCases.size();x++) {
-                TCases.getData().add(new XYChart.Data(legends.get(x), totalCases.get(x)));
+                double value = getBackLogValueIfSelected(totalCases.get(x), Collections.max(totalCases));
+                TCases.getData().add(new XYChart.Data(legends.get(x), isLogChartSelected() ? value : (int)value ));
             }
 
             Series DCases= new Series();
             DCases.setName("Total Deaths");
             for (int x = 0; x < deaths.size();x++) {
-                DCases.getData().add(new XYChart.Data(legends.get(x), deaths.get(x)));
+                double value = getBackLogValueIfSelected(deaths.get(x), Collections.max(deaths));
+                DCases.getData().add(new XYChart.Data(legends.get(x), isLogChartSelected() ? value : (int)value ));
             }
 
             Series RCases= new Series();
             RCases.setName("Total Recovered");
             for (int x = 0; x < recovered.size();x++) {
-                RCases.getData().add(new XYChart.Data(legends.get(x), recovered.get(x)));
+                double value = getBackLogValueIfSelected(recovered.get(x), Collections.max(recovered));
+                RCases.getData().add(new XYChart.Data(legends.get(x), isLogChartSelected() ? value : (int)value ));
             }
 
             Series ACases= new Series();
             ACases.setName("Total Active");
             for (int x = 0; x < active.size();x++) {
-                ACases.getData().add(new XYChart.Data(legends.get(x), active.get(x)));
+                double value = getBackLogValueIfSelected(active.get(x), Collections.max(active));
+                ACases.getData().add(new XYChart.Data(legends.get(x), isLogChartSelected() ? value : (int)value ));
             }
 
             chart.setLegendVisible(true);
@@ -300,6 +315,23 @@ public class CountryViewController implements Initializable {
         }catch (NullPointerException ex){
             ShowError.error("No data available for graph!!!" ,"Couldn't load API data and there's no history data for detailed data on " + data.getCountryName());
         }
+    }
+    
+    private double getBackLogValueIfSelected (int value, int max) {
+        if (isLogChartSelected() && value == 0) {
+            return 0;
+        }else if (isLogChartSelected()){
+            return logOfBase(max, value);
+        }
+        return value;
+    }
+    
+    public double logOfBase(int base, int num) {
+        return Math.log(num) / Math.log(base);
+    }
+    
+    private boolean isLogChartSelected() {
+        return logChart.isSelected();
     }
     
     private void setupLineChart (LineChart<String,Number> chart) {
