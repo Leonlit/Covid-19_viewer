@@ -111,8 +111,8 @@ public class CountryViewController implements Initializable {
             }
             title = title.substring(0, title.length() - 2);
             title = data.getCountryName() + " Data - " + title;
-            if (isLogChartSelected()) {
-                title += " (Logarithm chart view)";
+            if (isLogChartSelected(logChart)) {
+                title += " (Logarithmic chart view)";
             }
             chart.setTitle(title);
 
@@ -122,8 +122,8 @@ public class CountryViewController implements Initializable {
                 int max = Collections.max(options.get(line));
                 optionsMaxValue.add(max);
                 for (int x = 0; x < options.get(line).size();x++) {
-                    double value = getBackLogValueIfSelected(options.get(line).get(x), max);
-                    data.getData().add(new XYChart.Data(dates.get(x), isLogChartSelected() ? value : (int)value ));
+                    double value = getBackLogValueIfSelected(options.get(line).get(x), max, logChart);
+                    data.getData().add(new XYChart.Data(dates.get(x), isLogChartSelected(logChart) ? value : (int)value ));
                 }
                 chart.getData().add(data);
             }
@@ -279,15 +279,18 @@ public class CountryViewController implements Initializable {
             final NumberAxis yAxis = new NumberAxis();
 
             LineChart<String,Number> chart = new LineChart<String,Number>(xAxis,yAxis);
-            chart.setTitle(countryName + " Data - All");
-
+            String title = countryName + " Data - All";
+            if (CountryViewController.isLogChartSelected(logChart)) {
+                title += " (logarithmic chart view)";
+            }
+            chart.setTitle(title);
             Series TCases= new Series();
             TCases.setName("total Cases");
             for (int x = 0; x < totalCases.size();x++) {
                 int max = Collections.max(totalCases);
                 optionsMaxValue.add(max);
-                double value = getBackLogValueIfSelected(totalCases.get(x), max);
-                TCases.getData().add(new XYChart.Data(legends.get(x), isLogChartSelected() ? value : (int)value ));
+                double value = getBackLogValueIfSelected(totalCases.get(x), max, logChart);
+                TCases.getData().add(new XYChart.Data(legends.get(x), isLogChartSelected(logChart) ? value : (int)value ));
             }
 
             Series DCases= new Series();
@@ -295,8 +298,8 @@ public class CountryViewController implements Initializable {
             for (int x = 0; x < deaths.size();x++) {
                 int max = Collections.max(deaths);
                 optionsMaxValue.add(max);
-                double value = getBackLogValueIfSelected(deaths.get(x), max);
-                DCases.getData().add(new XYChart.Data(legends.get(x), isLogChartSelected() ? value : (int)value ));
+                double value = getBackLogValueIfSelected(deaths.get(x), max, logChart);
+                DCases.getData().add(new XYChart.Data(legends.get(x), isLogChartSelected(logChart) ? value : (int)value ));
             }
 
             Series RCases= new Series();
@@ -304,8 +307,8 @@ public class CountryViewController implements Initializable {
             for (int x = 0; x < recovered.size();x++) {
                 int max = Collections.max(recovered);
                 optionsMaxValue.add(max);
-                double value = getBackLogValueIfSelected(recovered.get(x), max);
-                RCases.getData().add(new XYChart.Data(legends.get(x), isLogChartSelected() ? value : (int)value ));
+                double value = getBackLogValueIfSelected(recovered.get(x), max, logChart);
+                RCases.getData().add(new XYChart.Data(legends.get(x), isLogChartSelected(logChart) ? value : (int)value ));
             }
 
             Series ACases= new Series();
@@ -313,8 +316,8 @@ public class CountryViewController implements Initializable {
             for (int x = 0; x < active.size();x++) {
                 int max = Collections.max(active);
                 optionsMaxValue.add(max);
-                double value = getBackLogValueIfSelected(active.get(x), max);
-                ACases.getData().add(new XYChart.Data(legends.get(x), isLogChartSelected() ? value : (int)value ));
+                double value = getBackLogValueIfSelected(active.get(x), max, logChart);
+                ACases.getData().add(new XYChart.Data(legends.get(x), isLogChartSelected(logChart) ? value : (int)value ));
             }
 
             chart.setLegendVisible(true);
@@ -327,23 +330,23 @@ public class CountryViewController implements Initializable {
         }
     }
     
-    private double getBackLogValueIfSelected (int value, int max) {
-        if (isLogChartSelected() && value == 0) {
+    public static double getBackLogValueIfSelected (int value, int max, CheckBox box) {
+        if (isLogChartSelected(box) && value == 0) {
             return 0;
-        }else if (isLogChartSelected()){
+        }else if (isLogChartSelected(box)){
             return logOfBase(max, value);
         }
         return value;
     }
     
-    private int getBackValueFromLog (double value, int max) {
-        if (isLogChartSelected()){
+    public static int getBackValueFromLog (double value, int max, CheckBox box) {
+        if (isLogChartSelected(box)){
             return getBackFromBase(max, value);
         }
         return (int)value;
     }
     
-    public double logOfBase(int base, double num) {
+    public static double logOfBase(int base, double num) {
         double value = Math.log(num) / Math.log(base);
         if (Double.isInfinite(value)) {
             return 0;
@@ -351,12 +354,12 @@ public class CountryViewController implements Initializable {
         return value;
     }
     
-    public int getBackFromBase(int base, double num) {
+    public static int getBackFromBase(int base, double num) {
         return (int)Math.exp(num * Math.log(base));
     }
     
-    private boolean isLogChartSelected() {
-        return logChart.isSelected();
+    public static boolean isLogChartSelected(CheckBox box) {
+        return box.isSelected();
     }
     
     private void setupLineChart (LineChart<String,Number> chart) {
@@ -380,7 +383,7 @@ public class CountryViewController implements Initializable {
                                                             item.getYValue()
                                                     )
                                                 ),
-                                            max);
+                                            max, logChart);
                         caption.setText(Integer.toString(value));
                         mainPane.getChildren().add(caption);
                     });
