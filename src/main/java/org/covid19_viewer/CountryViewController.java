@@ -12,11 +12,12 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.Charset;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.ResourceBundle;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.chart.CategoryAxis;
@@ -25,11 +26,13 @@ import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.chart.XYChart.Series;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.paint.Color;
+import javafx.util.StringConverter;
 import org.json.JSONArray;
 import org.json.JSONException;
 
@@ -44,6 +47,8 @@ public class CountryViewController implements Initializable {
     private ArrayList<Integer> allCases, allDeaths, allRecovered, allActive;
     private ArrayList<String> dates;
     private ArrayList<Integer> optionsMaxValue = new ArrayList<Integer>();
+    private int constraints = 0;
+    final int contraintsArr[] = {30, 90, 180, 365};
     
     @FXML private CheckBox casesT, deathsT, recoveredT, activeT, logChart;
     
@@ -54,6 +59,8 @@ public class CountryViewController implements Initializable {
     @FXML AnchorPane graphPlace, subPane;
     
     @FXML ScrollPane graphCont;
+    
+    @FXML ComboBox durationOfDataToShow;
     
     @FXML
     private AnchorPane mainPane, newChart, totalChart;
@@ -121,7 +128,8 @@ public class CountryViewController implements Initializable {
                 data.setName(legends[Integer.parseInt(checks[line])]);
                 int max = Collections.max(options.get(line));
                 optionsMaxValue.add(max);
-                for (int x = 0; x < options.get(line).size();x++) {
+                int seriesSize = options.get(line).size();
+                for (int x = getDataConstrainer(options.get(line), constraints); x < seriesSize;x++) {
                     double value = getBackLogValueIfSelected(options.get(line).get(x), max, logChart);
                     data.getData().add(new XYChart.Data(dates.get(x), isLogChartSelected(logChart) ? value : (int)value ));
                 }
@@ -133,21 +141,18 @@ public class CountryViewController implements Initializable {
     
     @FXML
     private void showAllBack () {
+        checkAllSettings();
         graphPlace.getChildren().clear();
         drawInitialLineChart(allCases, allDeaths, allRecovered, allActive, dates, data.getCountryName());
     }
     
-    @FXML
-    
-    /**
-     * Initializes the controller class.
-     */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
 
     }
     
     private void setupValues () {
+        setupDateDropdown();
         newCase.setText(Integer.toString(data.getNewCases()));
         newDeath.setText(Integer.toString(data.getNewDeaths()));
         newRecovered.setText(Integer.toString(data.getNewRecovered()));
@@ -159,12 +164,32 @@ public class CountryViewController implements Initializable {
         date.setText(data.getDate());
     }
     
+    private void setupDateDropdown () {
+        String customDate[] = {"Last 30 days", "Last 90 days", "Last 180 days", "Last 180 days", "All"};
+        ObservableList<String> items = FXCollections.observableArrayList(customDate);
+        durationOfDataToShow.setItems(items);
+        durationOfDataToShow.getSelectionModel().selectedIndexProperty().addListener((observable, oldValue, newValue) -> {
+            constraints = 0;
+            if ((int)newValue < contraintsArr.length) {
+                constraints = contraintsArr[(int)newValue];
+            }
+            System.out.println("constraints: " + constraints);
+            drawSpecificGraph();
+        });
+    }
+    
+    private void checkAllSettings () {
+        casesT.setSelected(true);
+        recoveredT.setSelected(true);
+        deathsT.setSelected(true);
+        activeT.setSelected(true);
+    }
+    
     public void setupData (CountryData data) {
         this.data = data;
         setupValues();
         setupCountryGraph();
         showDetailedData(0);
-        
     }
     
     private void showDetailedData (int forced) {
@@ -269,11 +294,15 @@ public class CountryViewController implements Initializable {
     
     private void drawInitialLineChart (ArrayList<Integer> totalCases, ArrayList<Integer> deaths, ArrayList<Integer> recovered,
                                         ArrayList<Integer> active, ArrayList<String> legends, String countryName) {
+        checkAllSettings();
         allCases = totalCases;
         allDeaths = deaths;
         allRecovered = recovered;
         allActive = active;
         dates = legends;
+        
+        final ArrayList allData[] = {totalCases, deaths, recovered, active, legends};
+        final String seriesName[] = {"total Cases", "Total Deaths", "Total Recovered", "Total Active"};
         try {
             final CategoryAxis xAxis = new CategoryAxis();
             final NumberAxis yAxis = new NumberAxis();
@@ -284,50 +313,33 @@ public class CountryViewController implements Initializable {
                 title += " (logarithmic chart view)";
             }
             chart.setTitle(title);
-            Series TCases= new Series();
-            TCases.setName("total Cases");
-            for (int x = 0; x < totalCases.size();x++) {
-                int max = Collections.max(totalCases);
-                optionsMaxValue.add(max);
-                double value = getBackLogValueIfSelected(totalCases.get(x), max, logChart);
-                TCases.getData().add(new XYChart.Data(legends.get(x), isLogChartSelected(logChart) ? value : (int)value ));
+            
+            for (int index=0;index < seriesName.length;index++) {
+                Series series = new Series();
+                series.setName(seriesName[index]);
+                for (int x = getDataConstrainer(allData[index], constraints); x < allData[index].size();x++) {
+                    ArrayList<Integer> temp = allData[index];
+                    int max = Collections.max(temp);
+                    optionsMaxValue.add(max);
+                    double value = getBackLogValueIfSelected(temp.get(x), max, logChart);
+                    series.getData().add(new XYChart.Data(legends.get(x), isLogChartSelected(logChart) ? value : (int)value ));
+                }
+                chart.getData().add(series);
             }
-
-            Series DCases= new Series();
-            DCases.setName("Total Deaths");
-            for (int x = 0; x < deaths.size();x++) {
-                int max = Collections.max(deaths);
-                optionsMaxValue.add(max);
-                double value = getBackLogValueIfSelected(deaths.get(x), max, logChart);
-                DCases.getData().add(new XYChart.Data(legends.get(x), isLogChartSelected(logChart) ? value : (int)value ));
-            }
-
-            Series RCases= new Series();
-            RCases.setName("Total Recovered");
-            for (int x = 0; x < recovered.size();x++) {
-                int max = Collections.max(recovered);
-                optionsMaxValue.add(max);
-                double value = getBackLogValueIfSelected(recovered.get(x), max, logChart);
-                RCases.getData().add(new XYChart.Data(legends.get(x), isLogChartSelected(logChart) ? value : (int)value ));
-            }
-
-            Series ACases= new Series();
-            ACases.setName("Total Active");
-            for (int x = 0; x < active.size();x++) {
-                int max = Collections.max(active);
-                optionsMaxValue.add(max);
-                double value = getBackLogValueIfSelected(active.get(x), max, logChart);
-                ACases.getData().add(new XYChart.Data(legends.get(x), isLogChartSelected(logChart) ? value : (int)value ));
-            }
-
             chart.setLegendVisible(true);
-            chart.getData().addAll(TCases, DCases, RCases, ACases);
-
             setupLineChart(chart);
         }catch (NullPointerException ex){
             System.out.println(ex);
             ShowError.error("No data available for graph!!!" ,"Couldn't load API data and there's no history data for detailed data on " + data.getCountryName());
         }
+    }
+    
+    public static int getDataConstrainer (ArrayList list, int constraints) {
+        if (constraints == 0) return 0;
+        int seriesSize = list.size();
+        int value = constraints > seriesSize ? seriesSize : seriesSize - constraints;
+        System.out.println(value);
+        return value;
     }
     
     public static double getBackLogValueIfSelected (int value, int max, CheckBox box) {
