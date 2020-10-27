@@ -45,5 +45,6 @@
       <Button fx:id="del2" layoutX="717.0" layoutY="95.0" mnemonicParsing="false" onAction="#removeData" text="delete" />
       <Button fx:id="del3" layoutX="717.0" layoutY="153.0" mnemonicParsing="false" onAction="#removeData" text="delete" />
       <CheckBox fx:id="logChart" layoutX="852.0" layoutY="192.0" mnemonicParsing="false" prefHeight="17.0" prefWidth="114.0" text="logarithmic chart" />
+      <ComboBox fx:id="durationOfDataToShow" layoutX="39.0" layoutY="197.0" prefWidth="150.0" promptText="duration" AnchorPane.leftAnchor="39.0" AnchorPane.topAnchor="197.0" />
    </children>
 </AnchorPane>

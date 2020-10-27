@@ -35,12 +35,12 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.paint.Color;
 import javafx.util.StringConverter;
+import static org.covid19_viewer.CountryViewController.getDataConstrainer;
 import org.json.JSONArray;
 import org.json.JSONException;
 
@@ -57,11 +57,14 @@ public class ComparingDataController implements Initializable {
     @FXML private AnchorPane mainPane, graphPlace;
     @FXML private CheckBox casesT, deathsT, recoveredT, activeT, logChart;
     @FXML private ScrollPane graphCont;
+    @FXML ComboBox durationOfDataToShow;
     
     private ArrayList<String> countryLegends = new ArrayList<String>();
     private ArrayList<CountriesData> dataCont = new ArrayList<CountriesData>();
     private ObservableList<CountriesData> dataList;
     private ArrayList<Integer> optionsMaxValue = new ArrayList<Integer>();
+    private int constraints = 0;
+    final int contraintsArr[] = {30, 90, 180, 365};
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
@@ -84,7 +87,6 @@ public class ComparingDataController implements Initializable {
                 System.out.println("added " + selected.getCountryName() + "into the list" );
             }
             countriesList.getSelectionModel().clearSelection();
-            countriesList.getItems().clear();
             setItems(dataList);
             countriesList.hide();
             updateSelectedNames();
@@ -97,7 +99,6 @@ public class ComparingDataController implements Initializable {
     private void removeData (ActionEvent event) {
         boolean error = false;
         if(dataCont.size() > 0) {
-            System.out.println(event.getSource());
             if (event.getSource().equals(del1)) {
                 dataCont.remove(0);
             }else if (event.getSource().equals(del2)) {
@@ -117,7 +118,6 @@ public class ComparingDataController implements Initializable {
     private void hideData (ActionEvent event) {
         boolean error = false;
         if(dataCont.size() > 0) {
-            System.out.println(event.getSource());
             if (event.getSource().equals(hide1)) {
                 firstCont.setDisable(!firstCont.isDisabled());
             }else if (event.getSource().equals(hide2)) {
@@ -224,19 +224,34 @@ public class ComparingDataController implements Initializable {
                     optionsMaxValue.add(max);
                     XYChart.Series data = new XYChart.Series();
                     data.setName(parsedData.get(country).getCountryName() + "." + legends[Integer.parseInt(checks[line])]);
-                    for (int x = 0; x < options.get(line + (country * checks.length) ).size();x++) {
+                    ArrayList<Integer> currItem = options.get(line + (country * checks.length));
+                    for (int x = getDataConstrainer(currItem, constraints); x < currItem.size();x++) {
                         double value = CountryViewController.getBackLogValueIfSelected(options.get(line + (country * checks.length)).get(x), max, logChart);
                         data.getData().add(new XYChart.Data(parsedData.get(country).getAllDates().get(x), CountryViewController.isLogChartSelected(logChart) ? value : (int)value ));
                     }
                     chart.getData().add(data);
                 }
             }
-            setupLineChart(chart);
+            CountryViewController.setupLineChart(chart, optionsMaxValue, logChart, mainPane, graphCont, graphPlace);
         }
         }catch (RuntimeException ex) {
             System.out.println("Error when loading history data" + ex.getMessage());
         }
         
+    }
+    
+    private void setupDateDropdown () {
+        String customDate[] = {"Last 30 days", "Last 90 days", "Last 180 days", "Last 365 days", "All"};
+        ObservableList<String> items = FXCollections.observableArrayList(customDate);
+        durationOfDataToShow.setItems(items);
+        durationOfDataToShow.getSelectionModel().selectedIndexProperty().addListener((observable, oldValue, newValue) -> {
+            constraints = 0;
+            if ((int)newValue < contraintsArr.length) {
+                constraints = contraintsArr[(int)newValue];
+            }
+            System.out.println("constraints: " + constraints);
+            constructGraph();
+        });
     }
     
     private ArrayList<CompareData> getCountriesData (ArrayList<CountriesData> countries, int forced) {
@@ -437,7 +452,6 @@ public class ComparingDataController implements Initializable {
         for (int x=0;x<countries.size();x++) {
             dataList.add(new CountriesData(countries.get(x), slugs.get(x)));
         }
-        
         setItems(dataList);
         countriesList.hide();
         
@@ -454,9 +468,11 @@ public class ComparingDataController implements Initializable {
                 if(event.getClickCount() == 2){
                     return;
                 }
-            }
-            if (countriesList.getItems().size() != 0) {
-                countriesList.show();
+                if (countriesList.getItems().size() != 0) {
+                    countriesList.show();
+                }else {
+                    countriesList.hide();
+                }
             }
         });
         
@@ -491,7 +507,7 @@ public class ComparingDataController implements Initializable {
                 searchCountryName(countryName);
             }
         });
-        
+        setupDateDropdown();
         countriesList.setConverter(new StringConverter<CountriesData>() {
             @Override
             public String toString(CountriesData object) {
@@ -525,41 +541,6 @@ public class ComparingDataController implements Initializable {
     
     private void moveCaret(int textLength) {
         countriesList.getEditor().positionCaret(textLength);
-    }
-    
-    private void setupLineChart (LineChart<String,Number> chart) {
-        final Label caption = new Label("");
-        int counter = 0;
-        for (XYChart.Series<String,Number> series: chart.getData()){
-            int max = optionsMaxValue.get(counter);
-            for (XYChart.Data<String, Number> item: series.getData()){
-                item.getNode().addEventHandler(MouseEvent.MOUSE_PRESSED, (MouseEvent e) -> {
-                    caption.setTextFill(Color.BLACK);
-                    caption.setStyle("-fx-font: 24 arial;");
-                    caption.setTranslateX(e.getSceneX() - 50);
-                    caption.setTranslateY(e.getSceneY() - 20);
-                    caption.setText(String.valueOf(item.getYValue()));
-                    final int value = CountryViewController.getBackValueFromLog(
-                                            Double.parseDouble(
-                                                String.valueOf(
-                                                        item.getYValue()
-                                                )
-                                            ),
-                                        max, logChart);
-                    caption.setText(Integer.toString(value));
-                    mainPane.getChildren().add(caption);
-                });
-                item.getNode().addEventHandler(MouseEvent.MOUSE_RELEASED, (MouseEvent e) -> {
-                    mainPane.getChildren().remove(caption);
-                });
-            }
-            counter++;
-        }
-
-        chart.setMinWidth(1400);
-        graphCont.setMinViewportWidth(1400);
-        graphPlace.getChildren().add(chart);
-        chart.setLegendVisible(true);
     }
     
     private static Comparator<CountriesData> getComparator() {

@@ -32,15 +32,9 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.paint.Color;
-import javafx.util.StringConverter;
 import org.json.JSONArray;
 import org.json.JSONException;
 
-/**
- * FXML Controller class
- *
- * @author User
- */
 public class CountryViewController implements Initializable {
     
     private CountryData data;
@@ -56,15 +50,11 @@ public class CountryViewController implements Initializable {
     private Label newCase, newDeath, newRecovered, 
                     totalCase, activeCase, totalDeath, totalRecovered, countryName, date;
     
-    @FXML AnchorPane graphPlace, subPane;
-    
-    @FXML ScrollPane graphCont;
-    
-    @FXML ComboBox durationOfDataToShow;
-    
-    @FXML
-    private AnchorPane mainPane, newChart, totalChart;
-    
+    @FXML private AnchorPane graphPlace, subPane;
+    @FXML private ScrollPane graphCont;
+    @FXML private ComboBox durationOfDataToShow;
+    @FXML private AnchorPane mainPane, newChart, totalChart;
+
     @FXML
     private void drawSpecificGraph() {
         optionsMaxValue.clear();
@@ -135,7 +125,7 @@ public class CountryViewController implements Initializable {
                 }
                 chart.getData().add(data);
             }
-            setupLineChart(chart);
+            setupLineChart(chart, optionsMaxValue, logChart, mainPane, graphCont, graphPlace);
         }
     }
     
@@ -165,7 +155,7 @@ public class CountryViewController implements Initializable {
     }
     
     private void setupDateDropdown () {
-        String customDate[] = {"Last 30 days", "Last 90 days", "Last 180 days", "Last 180 days", "All"};
+        String customDate[] = {"Last 30 days", "Last 90 days", "Last 180 days", "Last 365 days", "All"};
         ObservableList<String> items = FXCollections.observableArrayList(customDate);
         durationOfDataToShow.setItems(items);
         durationOfDataToShow.getSelectionModel().selectedIndexProperty().addListener((observable, oldValue, newValue) -> {
@@ -327,7 +317,7 @@ public class CountryViewController implements Initializable {
                 chart.getData().add(series);
             }
             chart.setLegendVisible(true);
-            setupLineChart(chart);
+            setupLineChart(chart, optionsMaxValue, logChart, mainPane, graphCont, graphPlace);
         }catch (NullPointerException ex){
             System.out.println(ex);
             ShowError.error("No data available for graph!!!" ,"Couldn't load API data and there's no history data for detailed data on " + data.getCountryName());
@@ -337,7 +327,7 @@ public class CountryViewController implements Initializable {
     public static int getDataConstrainer (ArrayList list, int constraints) {
         if (constraints == 0) return 0;
         int seriesSize = list.size();
-        int value = constraints > seriesSize ? seriesSize : seriesSize - constraints;
+        int value = constraints > seriesSize ? 0 : seriesSize - constraints;
         System.out.println(value);
         return value;
     }
@@ -374,11 +364,13 @@ public class CountryViewController implements Initializable {
         return box.isSelected();
     }
     
-    private void setupLineChart (LineChart<String,Number> chart) {
+    public static void setupLineChart (LineChart<String,Number> chart, ArrayList<Integer> optionsMax,
+                                CheckBox logChart, AnchorPane mainPane, ScrollPane graphCont,
+                                AnchorPane graphPlace) {
         final Label caption = new Label("");
         int counter = 0;
             for (Series<String,Number> serie: chart.getData()){
-                int max = optionsMaxValue.get(counter);
+                int max = optionsMax.get(counter);
                 for (XYChart.Data<String, Number> item: serie.getData()){
                     item.getNode().addEventHandler(MouseEvent.MOUSE_PRESSED, (MouseEvent e) -> {
                         caption.setTextFill(Color.BLACK);
