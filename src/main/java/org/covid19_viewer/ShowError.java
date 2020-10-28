@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.covid19_viewer;
 
 import javafx.geometry.Insets;
@@ -12,10 +7,6 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
-/**
- *
- * @author User
- */
 public class ShowError {
     public static void error (String stageTitle, String message) {
         Stage addPageNotice = new Stage();

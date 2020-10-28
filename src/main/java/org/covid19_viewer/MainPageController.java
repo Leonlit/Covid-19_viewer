@@ -51,7 +51,6 @@ import org.json.JSONObject;
 public class MainPageController implements Initializable {
     
     private int timeOut = 0;
-    private boolean viewingCountry = false;
     private ObservableList<CountryData> dataList;
     
     @FXML
@@ -86,10 +85,6 @@ public class MainPageController implements Initializable {
         countryData.setItems(newData);
     }
     
-    private void setupCountryNameSearch (ArrayList<String> countryNameList) {
-        
-    } 
-    
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         //setting up tableView section
@@ -113,9 +108,8 @@ public class MainPageController implements Initializable {
                         Parent root = loader.load();
 
                         CountryViewController controller = loader.getController();
-                        //Pass whatever data you want. You can have multiple method calls here
-                        controller.setupData(rowData);
                         Scene countryView = new Scene(root);
+                        controller.setupData(rowData, countryView);
                         URL cssFile = getClass().getResource("index.css");
                         String css = cssFile.toExternalForm(); 
                         countryView.getStylesheets().add(css);

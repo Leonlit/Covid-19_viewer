@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.covid19_viewer;
 
 import java.io.BufferedReader;
@@ -21,10 +16,9 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
-import javafx.event.Event;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.Scene;
 import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
@@ -35,20 +29,13 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.input.KeyCode;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.paint.Color;
 import javafx.util.StringConverter;
 import static org.covid19_viewer.CountryViewController.getDataConstrainer;
 import org.json.JSONArray;
 import org.json.JSONException;
 
-/**
- * FXML Controller class
- *
- * @author User
- */
 public class ComparingDataController implements Initializable {
     
     @FXML private ComboBox<CountriesData> countriesList;
@@ -65,6 +52,7 @@ public class ComparingDataController implements Initializable {
     private ArrayList<Integer> optionsMaxValue = new ArrayList<Integer>();
     private int constraints = 0;
     final int contraintsArr[] = {30, 90, 180, 365};
+    private Scene mainScene;
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
@@ -144,6 +132,7 @@ public class ComparingDataController implements Initializable {
     
     @FXML
     private void constructGraph () {
+        CountryViewController.changeCursorToLoading(mainScene);
         try {
         graphPlace.getChildren().clear();
         String checked = "";
@@ -232,12 +221,16 @@ public class ComparingDataController implements Initializable {
                     chart.getData().add(data);
                 }
             }
-            CountryViewController.setupLineChart(chart, optionsMaxValue, logChart, mainPane, graphCont, graphPlace);
+            CountryViewController.setupLineChart(chart, optionsMaxValue, logChart, mainPane, graphCont, graphPlace, mainScene);
         }
         }catch (RuntimeException ex) {
             System.out.println("Error when loading history data" + ex.getMessage());
         }
-        
+        CountryViewController.changeCursorToNormal(mainScene);
+    }
+    
+    public void storeScene (Scene mainScene) {
+        this.mainScene = mainScene;
     }
     
     private void setupDateDropdown () {
@@ -249,7 +242,6 @@ public class ComparingDataController implements Initializable {
             if ((int)newValue < contraintsArr.length) {
                 constraints = contraintsArr[(int)newValue];
             }
-            System.out.println("constraints: " + constraints);
             constructGraph();
         });
     }

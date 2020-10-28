@@ -1,8 +1,4 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package org.covid19_viewer;
 
 import java.io.IOException;
@@ -37,8 +33,10 @@ public class Covid19_Viewer extends Application {
                 Stage compare = new Stage();
                 FXMLLoader Cloader = new FXMLLoader(getClass().getResource("ComparingData.fxml"));
                 Parent Croot = Cloader.load();
+                ComparingDataController controller = Cloader.getController();
 
                 Scene compareView = new Scene(Croot);
+                controller.storeScene(compareView);
                 compare.setScene(compareView);
                 compare.setTitle("Countries Data Comparer");
                 compare.show();
@@ -63,9 +61,6 @@ public class Covid19_Viewer extends Application {
         stage.show();
     }
 
-    /**
-     * @param args the command line arguments
-     */
     public static void main(String[] args) {
         launch(args);
     }

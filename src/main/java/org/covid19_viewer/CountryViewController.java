@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.covid19_viewer;
 
 import java.io.BufferedReader;
@@ -20,6 +15,8 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.Cursor;
+import javafx.scene.Scene;
 import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
@@ -43,14 +40,14 @@ public class CountryViewController implements Initializable {
     private ArrayList<Integer> optionsMaxValue = new ArrayList<Integer>();
     private int constraints = 0;
     final int contraintsArr[] = {30, 90, 180, 365};
+    private Scene mainScene;
     
     @FXML private CheckBox casesT, deathsT, recoveredT, activeT, logChart;
     
-    @FXML 
-    private Label newCase, newDeath, newRecovered, 
-                    totalCase, activeCase, totalDeath, totalRecovered, countryName, date;
+    @FXML private Label newCase, newDeath, newRecovered, 
+          totalCase, activeCase, totalDeath, totalRecovered, countryName, date;
     
-    @FXML private AnchorPane graphPlace, subPane;
+    @FXML private AnchorPane graphPlace;
     @FXML private ScrollPane graphCont;
     @FXML private ComboBox durationOfDataToShow;
     @FXML private AnchorPane mainPane, newChart, totalChart;
@@ -125,7 +122,7 @@ public class CountryViewController implements Initializable {
                 }
                 chart.getData().add(data);
             }
-            setupLineChart(chart, optionsMaxValue, logChart, mainPane, graphCont, graphPlace);
+            setupLineChart(chart, optionsMaxValue, logChart, mainPane, graphCont, graphPlace, mainScene);
         }
     }
     
@@ -163,7 +160,6 @@ public class CountryViewController implements Initializable {
             if ((int)newValue < contraintsArr.length) {
                 constraints = contraintsArr[(int)newValue];
             }
-            System.out.println("constraints: " + constraints);
             drawSpecificGraph();
         });
     }
@@ -175,8 +171,9 @@ public class CountryViewController implements Initializable {
         activeT.setSelected(true);
     }
     
-    public void setupData (CountryData data) {
+    public void setupData (CountryData data, Scene mainScene) {
         this.data = data;
+        this.mainScene = mainScene;
         setupValues();
         setupCountryGraph();
         showDetailedData(0);
@@ -317,7 +314,7 @@ public class CountryViewController implements Initializable {
                 chart.getData().add(series);
             }
             chart.setLegendVisible(true);
-            setupLineChart(chart, optionsMaxValue, logChart, mainPane, graphCont, graphPlace);
+            setupLineChart(chart, optionsMaxValue, logChart, mainPane, graphCont, graphPlace, mainScene);
         }catch (NullPointerException ex){
             System.out.println(ex);
             ShowError.error("No data available for graph!!!" ,"Couldn't load API data and there's no history data for detailed data on " + data.getCountryName());
@@ -328,7 +325,6 @@ public class CountryViewController implements Initializable {
         if (constraints == 0) return 0;
         int seriesSize = list.size();
         int value = constraints > seriesSize ? 0 : seriesSize - constraints;
-        System.out.println(value);
         return value;
     }
     
@@ -366,42 +362,51 @@ public class CountryViewController implements Initializable {
     
     public static void setupLineChart (LineChart<String,Number> chart, ArrayList<Integer> optionsMax,
                                 CheckBox logChart, AnchorPane mainPane, ScrollPane graphCont,
-                                AnchorPane graphPlace) {
+                                AnchorPane graphPlace, Scene mainScene) {
+        changeCursorToLoading(mainScene);
         final Label caption = new Label("");
         int counter = 0;
-            for (Series<String,Number> serie: chart.getData()){
-                int max = optionsMax.get(counter);
-                for (XYChart.Data<String, Number> item: serie.getData()){
-                    item.getNode().addEventHandler(MouseEvent.MOUSE_PRESSED, (MouseEvent e) -> {
-                        caption.setTextFill(Color.BLACK);
-                        caption.setStyle("-fx-font: 24 arial;" + 
-                                        "-fx-padding: 5px;" + 
-                                        "-fx-border-radius: 5px;" + 
-                                        "-fx-background-radius: 5px;" +
-                                        "-fx-background-color: rgba(255, 255, 255, 0.5);");
-                        caption.setTranslateX(e.getSceneX() - 50);
-                        caption.setTranslateY(e.getSceneY() - 20);
-                        final int value = getBackValueFromLog(
-                                                Double.parseDouble(
-                                                    String.valueOf(
-                                                            item.getYValue()
-                                                    )
-                                                ),
-                                            max, logChart);
-                        caption.setText(Integer.toString(value));
-                        mainPane.getChildren().add(caption);
-                    });
-                    item.getNode().addEventHandler(MouseEvent.MOUSE_RELEASED, (MouseEvent e) -> {
-                        mainPane.getChildren().remove(caption);
-                    });
-                }
-                counter++;
+        for (Series<String,Number> serie: chart.getData()){
+            int max = optionsMax.get(counter);
+            for (XYChart.Data<String, Number> item: serie.getData()){
+                item.getNode().addEventHandler(MouseEvent.MOUSE_PRESSED, (MouseEvent e) -> {
+                    caption.setTextFill(Color.BLACK);
+                    caption.setStyle("-fx-font: 24 arial;" + 
+                                    "-fx-padding: 5px;" + 
+                                    "-fx-border-radius: 5px;" + 
+                                    "-fx-background-radius: 5px;" +
+                                    "-fx-background-color: rgba(255, 255, 255, 0.5);");
+                    caption.setTranslateX(e.getSceneX() - 50);
+                    caption.setTranslateY(e.getSceneY() - 20);
+                    final int value = getBackValueFromLog(
+                                            Double.parseDouble(
+                                                String.valueOf(
+                                                        item.getYValue()
+                                                )
+                                            ),
+                                        max, logChart);
+                    caption.setText(Integer.toString(value));
+                    mainPane.getChildren().add(caption);
+                });
+                item.getNode().addEventHandler(MouseEvent.MOUSE_RELEASED, (MouseEvent e) -> {
+                    mainPane.getChildren().remove(caption);
+                });
             }
+            counter++;
+        }
 
-            chart.setMinWidth(1400);
-            graphCont.setMinViewportWidth(1400);
-            graphPlace.getChildren().add(chart);
-            chart.setLegendVisible(true);
+        chart.setMinWidth(1400);
+        graphCont.setMinViewportWidth(1400);
+        graphPlace.getChildren().add(chart);
+        chart.setLegendVisible(true);
+        changeCursorToNormal(mainScene);
     }
     
+    public static void changeCursorToLoading (Scene mainScene) {
+        mainScene.setCursor(Cursor.WAIT);
+    }
+    
+    public static void changeCursorToNormal (Scene mainScene) {
+        mainScene.setCursor(Cursor.DEFAULT);
+    }
 }
