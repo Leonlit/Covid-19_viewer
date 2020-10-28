@@ -18,6 +18,7 @@ import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.Cursor;
 import javafx.scene.Scene;
 import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.LineChart;
@@ -86,12 +87,16 @@ public class ComparingDataController implements Initializable {
     @FXML
     private void removeData (ActionEvent event) {
         boolean error = false;
-        if(dataCont.size() > 0) {
-            if (event.getSource().equals(del1)) {
+        Object eventSource = event.getSource();
+        int dataContSize = dataCont.size();
+        if(dataContSize > 0) {
+            if (eventSource.equals(del1)) {
                 dataCont.remove(0);
-            }else if (event.getSource().equals(del2)) {
-                dataCont.remove(1);
-            }else if (event.getSource().equals(del3)) {
+            }else if (eventSource.equals(del2)) {
+                if (dataContSize > 1)
+                    dataCont.remove(1);
+            }else if (eventSource.equals(del3)) {
+                if (dataContSize > 2)
                 dataCont.remove(2);
             }else {
                 error = true;
@@ -123,110 +128,118 @@ public class ComparingDataController implements Initializable {
     
     @FXML
     private void drawAll () {
-        casesT.setSelected(true);
-        recoveredT.setSelected(true);
-        deathsT.setSelected(true);
-        activeT.setSelected(true);
-        constructGraph();
+        if (dataCont.size() != 0) {
+            changeCursorToLoading(mainScene);
+            casesT.setSelected(true);
+            recoveredT.setSelected(true);
+            deathsT.setSelected(true);
+            activeT.setSelected(true);
+            constructGraph();
+        }
     }
     
     @FXML
     private void constructGraph () {
-        CountryViewController.changeCursorToLoading(mainScene);
-        try {
-        graphPlace.getChildren().clear();
-        String checked = "";
-        String legends[] = {"Total Cases", "Total Deaths", "Total Recovered", "Total Active"};
-        
-        if (casesT.isSelected()) {
-            checked += "0";
-        }
-        if (deathsT.isSelected()) {
-            checked += "1";
-        }
-        if (recoveredT.isSelected()) {
-            checked += "2";
-        }
-        if(activeT.isSelected()) {
-            checked += "3";
-        }
-        if (checked.length() > 0) {
-            String checks[] = checked.split("");
-            int option[] = new int[checks.length];
-            int counter = 0;
-            for (String i : checks) {
-                option[counter++] = Integer.parseInt(i);
+        if (dataCont.size() != 0) {
+            changeCursorToLoading(mainScene);
+            if (!graphPlace.getChildren().isEmpty()) {
+                graphPlace.getChildren().clear();
             }
-            
-            ArrayList<CountriesData> countryList = new ArrayList<CountriesData>();
-            countryLegends.clear();
-            if (!firstCont.isDisabled() && !firstCont.getText().equals("")) {
-                countryList.add(dataCont.get(0));
-            }
-            if (!secondCont.isDisabled() && !secondCont.getText().equals("")) {
-                countryList.add(dataCont.get(1));
-            }
-            if (!thirdCont.isDisabled() && !thirdCont.getText().equals("")) {
-                countryList.add(dataCont.get(2));
-            }
-            
-            ArrayList<CompareData> parsedData = new ArrayList<CompareData>();
-            
-            parsedData = getCountriesData(countryList, 0);
-            
-            ArrayList<ArrayList<Integer>> options = new ArrayList<ArrayList<Integer>>();
-            for (int country = 0; country < parsedData.size();country++) {
-                for (int x = 0 ; x< option.length;x++) {
-                   switch (option[x]) {
-                        case 0:
-                            options.add(parsedData.get(country).getAllCases());
-                            break;
-                        case 1:
-                            options.add(parsedData.get(country).getAllDeaths());
-                            break;
-                        case 2:
-                            options.add(parsedData.get(country).getAllRecovered());
-                            break;
-                        case 3:
-                            options.add(parsedData.get(country).getAllActive());
-                            break;
-                    }
-                }
-            }
+            try {
+                graphPlace.getChildren().clear();
+                String checked = "";
+                String legends[] = {"Total Cases", "Total Deaths", "Total Recovered", "Total Active"};
 
-            final CategoryAxis xAxis = new CategoryAxis();
-            final NumberAxis yAxis = new NumberAxis();
-
-            LineChart<String,Number> chart = new LineChart<String,Number>(xAxis,yAxis);
-            String title = "";
-            for (int x = 0;x< countryList.size();x++) {
-                title += countryList.get(x).getCountryName() + ", ";
-            }
-            title = title.substring(0, title.length() - 2);
-            if (CountryViewController.isLogChartSelected(logChart)) {
-                title += " (logarithmic chart view)";
-            }
-            chart.setTitle("Comparing Data - " + title);
-            for (int country = 0; country < parsedData.size();country++) {
-                for (int line=0;line<checks.length;line++) {
-                    int max = Collections.max(options.get(line + (country * checks.length)));
-                    optionsMaxValue.add(max);
-                    XYChart.Series data = new XYChart.Series();
-                    data.setName(parsedData.get(country).getCountryName() + "." + legends[Integer.parseInt(checks[line])]);
-                    ArrayList<Integer> currItem = options.get(line + (country * checks.length));
-                    for (int x = getDataConstrainer(currItem, constraints); x < currItem.size();x++) {
-                        double value = CountryViewController.getBackLogValueIfSelected(options.get(line + (country * checks.length)).get(x), max, logChart);
-                        data.getData().add(new XYChart.Data(parsedData.get(country).getAllDates().get(x), CountryViewController.isLogChartSelected(logChart) ? value : (int)value ));
-                    }
-                    chart.getData().add(data);
+                if (casesT.isSelected()) {
+                    checked += "0";
                 }
+                if (deathsT.isSelected()) {
+                    checked += "1";
+                }
+                if (recoveredT.isSelected()) {
+                    checked += "2";
+                }
+                if(activeT.isSelected()) {
+                    checked += "3";
+                }
+                if (checked.length() > 0) {
+                    String checks[] = checked.split("");
+                    int option[] = new int[checks.length];
+                    int counter = 0;
+                    for (String i : checks) {
+                        option[counter++] = Integer.parseInt(i);
+                    }
+
+                    ArrayList<CountriesData> countryList = new ArrayList<CountriesData>();
+                    countryLegends.clear();
+                    if (!firstCont.isDisabled() && !firstCont.getText().equals("")) {
+                        countryList.add(dataCont.get(0));
+                    }
+                    if (!secondCont.isDisabled() && !secondCont.getText().equals("")) {
+                        countryList.add(dataCont.get(1));
+                    }
+                    if (!thirdCont.isDisabled() && !thirdCont.getText().equals("")) {
+                        countryList.add(dataCont.get(2));
+                    }
+
+                    ArrayList<CompareData> parsedData = new ArrayList<CompareData>();
+
+                    parsedData = getCountriesData(countryList, 0);
+
+                    ArrayList<ArrayList<Integer>> options = new ArrayList<ArrayList<Integer>>();
+                    for (int country = 0; country < parsedData.size();country++) {
+                        for (int x = 0 ; x< option.length;x++) {
+                           switch (option[x]) {
+                                case 0:
+                                    options.add(parsedData.get(country).getAllCases());
+                                    break;
+                                case 1:
+                                    options.add(parsedData.get(country).getAllDeaths());
+                                    break;
+                                case 2:
+                                    options.add(parsedData.get(country).getAllRecovered());
+                                    break;
+                                case 3:
+                                    options.add(parsedData.get(country).getAllActive());
+                                    break;
+                            }
+                        }
+                    }
+
+                    final CategoryAxis xAxis = new CategoryAxis();
+                    final NumberAxis yAxis = new NumberAxis();
+
+                    LineChart<String,Number> chart = new LineChart<String,Number>(xAxis,yAxis);
+                    String title = "";
+                    for (int x = 0;x< countryList.size();x++) {
+                        title += countryList.get(x).getCountryName() + ", ";
+                    }
+                    title = title.substring(0, title.length() - 2);
+                    if (CountryViewController.isLogChartSelected(logChart)) {
+                        title += " (logarithmic chart view)";
+                    }
+                    chart.setTitle("Comparing Data - " + title);
+                    for (int country = 0; country < parsedData.size();country++) {
+                        for (int line=0;line<checks.length;line++) {
+                            int max = Collections.max(options.get(line + (country * checks.length)));
+                            optionsMaxValue.add(max);
+                            XYChart.Series data = new XYChart.Series();
+                            data.setName(parsedData.get(country).getCountryName() + "." + legends[Integer.parseInt(checks[line])]);
+                            ArrayList<Integer> currItem = options.get(line + (country * checks.length));
+                            for (int x = getDataConstrainer(currItem, constraints); x < currItem.size();x++) {
+                                double value = CountryViewController.getBackLogValueIfSelected(options.get(line + (country * checks.length)).get(x), max, logChart);
+                                data.getData().add(new XYChart.Data(parsedData.get(country).getAllDates().get(x), CountryViewController.isLogChartSelected(logChart) ? value : (int)value ));
+                            }
+                            chart.getData().add(data);
+                        }
+                    }
+                    CountryViewController.setupLineChart(chart, optionsMaxValue, logChart, 
+                                                        mainPane, graphCont, graphPlace, mainScene);
+                }
+            }catch (RuntimeException ex) {
+                System.out.println(ex);
             }
-            CountryViewController.setupLineChart(chart, optionsMaxValue, logChart, mainPane, graphCont, graphPlace, mainScene);
         }
-        }catch (RuntimeException ex) {
-            System.out.println("Error when loading history data" + ex.getMessage());
-        }
-        CountryViewController.changeCursorToNormal(mainScene);
     }
     
     public void storeScene (Scene mainScene) {
@@ -293,7 +306,7 @@ public class ComparingDataController implements Initializable {
                 result = FileManagement.getFromFile(countries.get(country).getSlug(), 1);
                 forced = 1;
             } finally {
-                if (!(result.equals("") || result == "")) {
+                if (!(result.equals("") || result == "" || result.equals("[]"))) {
                     if (forced == 1) {
                         ShowError.error("Unable to fetch new data from API server!!!", "Error: Unable to fetch new data from server, currently using old data for " + countries.get(country).getCountryName());
                     }
@@ -305,11 +318,14 @@ public class ComparingDataController implements Initializable {
                     }
                     System.out.println("getted " + countries.get(country).getCountryName());
                 }else {
-                    if (timeOut > 3) {
+                    if (timeOut > 1) {
+                        CountryViewController.changeCursorToNormal(mainScene);
                         ShowError.error("Error, No data available!!!", "Couldn't load API data and there's no history data for " + countries.get(country).getCountryName());
                         countries.remove(country);
                         country--;
+                        timeOut = 0;
                     }else {
+                        System.out.println(timeOut);
                         timeOut++;
                         country--;
                     }
@@ -546,5 +562,9 @@ public class ComparingDataController implements Initializable {
                return name.compareTo(name2); 
            }
         };
+    }
+    
+    public void changeCursorToLoading (Scene mainScene) {
+        mainScene.setCursor(Cursor.WAIT);
     }
 }

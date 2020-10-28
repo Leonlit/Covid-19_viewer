@@ -363,7 +363,6 @@ public class CountryViewController implements Initializable {
     public static void setupLineChart (LineChart<String,Number> chart, ArrayList<Integer> optionsMax,
                                 CheckBox logChart, AnchorPane mainPane, ScrollPane graphCont,
                                 AnchorPane graphPlace, Scene mainScene) {
-        changeCursorToLoading(mainScene);
         final Label caption = new Label("");
         int counter = 0;
         for (Series<String,Number> serie: chart.getData()){
@@ -401,11 +400,7 @@ public class CountryViewController implements Initializable {
         chart.setLegendVisible(true);
         changeCursorToNormal(mainScene);
     }
-    
-    public static void changeCursorToLoading (Scene mainScene) {
-        mainScene.setCursor(Cursor.WAIT);
-    }
-    
+        
     public static void changeCursorToNormal (Scene mainScene) {
         mainScene.setCursor(Cursor.DEFAULT);
     }

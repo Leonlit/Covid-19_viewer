@@ -36,6 +36,9 @@ public class Covid19_Viewer extends Application {
                 ComparingDataController controller = Cloader.getController();
 
                 Scene compareView = new Scene(Croot);
+                URL cssFile = getClass().getResource("index.css");
+                String css = cssFile.toExternalForm(); 
+                compareView.getStylesheets().add(css);
                 controller.storeScene(compareView);
                 compare.setScene(compareView);
                 compare.setTitle("Countries Data Comparer");
