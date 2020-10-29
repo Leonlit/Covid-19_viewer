@@ -114,7 +114,7 @@ public class MainPageController implements Initializable {
                         String css = cssFile.toExternalForm(); 
                         countryView.getStylesheets().add(css);
                         cont.setScene(countryView);
-                        cont.setTitle("Data for " + rowData.getCountryName());
+                        cont.setTitle("Covid-19 Viewer - Data for " + rowData.getCountryName());
                         cont.show();
                     } catch (IOException ex) {
                         Logger.getLogger(MainPageController.class.getName()).log(Level.SEVERE, null, ex);

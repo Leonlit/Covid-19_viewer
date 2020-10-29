@@ -141,7 +141,6 @@ public class ComparingDataController implements Initializable {
     @FXML
     private void constructGraph () {
         if (dataCont.size() != 0) {
-            changeCursorToLoading(mainScene);
             if (!graphPlace.getChildren().isEmpty()) {
                 graphPlace.getChildren().clear();
             }
@@ -163,6 +162,7 @@ public class ComparingDataController implements Initializable {
                     checked += "3";
                 }
                 if (checked.length() > 0) {
+                    changeCursorToLoading(mainScene);
                     String checks[] = checked.split("");
                     int option[] = new int[checks.length];
                     int counter = 0;

@@ -41,7 +41,7 @@ public class Covid19_Viewer extends Application {
                 compareView.getStylesheets().add(css);
                 controller.storeScene(compareView);
                 compare.setScene(compareView);
-                compare.setTitle("Countries Data Comparer");
+                compare.setTitle("Covid-19 Viewer - Countries Data Comparer");
                 compare.show();
             } catch (IOException ex) {
                 Logger.getLogger(MainPageController.class.getName()).log(Level.SEVERE, null, ex);
@@ -57,7 +57,7 @@ public class Covid19_Viewer extends Application {
         String css = url.toExternalForm(); 
         scene.getStylesheets().add(css);
 
-        stage.setTitle("Covid-19 Analyser - main page");
+        stage.setTitle("Covid-19 Viewer - main page");
         stage.setScene(scene);
         
         stage.close();
