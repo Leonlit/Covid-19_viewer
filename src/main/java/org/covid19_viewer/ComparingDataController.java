@@ -214,10 +214,12 @@ public class ComparingDataController implements Initializable {
                     for (int x = 0;x< countryList.size();x++) {
                         title += countryList.get(x).getCountryName() + ", ";
                     }
+                    
                     title = title.substring(0, title.length() - 2);
                     if (CountryViewController.isLogChartSelected(logChart)) {
                         title += " (logarithmic chart view)";
                     }
+                    
                     chart.setTitle("Comparing Data - " + title);
                     for (int country = 0; country < parsedData.size();country++) {
                         for (int line=0;line<checks.length;line++) {
