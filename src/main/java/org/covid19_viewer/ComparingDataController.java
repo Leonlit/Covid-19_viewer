@@ -11,7 +11,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.ResourceBundle;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -184,7 +188,7 @@ public class ComparingDataController implements Initializable {
 
                     ArrayList<CompareData> parsedData = new ArrayList<CompareData>();
 
-                    parsedData = getCountriesData(countryList, 0);
+                    parsedData = getCountriesData(countryList);
 
                     ArrayList<ArrayList<Integer>> options = new ArrayList<ArrayList<Integer>>();
                     for (int country = 0; country < parsedData.size();country++) {
@@ -261,87 +265,50 @@ public class ComparingDataController implements Initializable {
         });
     }
     
-    private ArrayList<CompareData> getCountriesData (ArrayList<CountriesData> countries, int forced) {
-        int timeOut = 0;
+    private ArrayList<CompareData> getCountriesData (ArrayList<CountriesData> countries) {
         ArrayList<String> data = new ArrayList<String>();
+        Thread threads[] = new Thread[countries.size()];
+        Worker workers[] = new Worker[countries.size()];
+        ExecutorService es = Executors.newCachedThreadPool();
         
         for (int country = 0; country < countries.size();country++) {
-            final String apiURL = "https://api.covid19api.com/total/country/" + countries.get(country).getSlug();
-            String result = FileManagement.getFromFile(countries.get(country).getSlug());
-
             try {
-                if (result.equals("") || result == "" || forced == 1) {
-                    URL website = new URL(apiURL);
-                    HttpURLConnection conn = (HttpURLConnection) website.openConnection();
-                    conn.setRequestMethod("GET");
-                    conn.addRequestProperty("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36");
-                    conn.connect();
-
-                    int responseCode = conn.getResponseCode(); //200 means ok
-                    if (responseCode != 200) {
-                        //remember to make a new custom error window for this refer last project
-                        //implement various code response later
-
-                        throw new RuntimeException("HttpResponseCode: " + responseCode);
-                    }else {
-                        System.out.println("Try getting " + countries.get(country).getSlug() + " data from Server");
-                        BufferedReader r  = new BufferedReader(new InputStreamReader(conn.getInputStream(), Charset.forName("UTF-8")));
-                        StringBuilder sb = new StringBuilder();
-                        String line;
-
-                        while ((line = r.readLine()) != null) {
-                            sb.append(line);
-                        }
-
-                        result = sb.toString();
-                        System.out.println("used api data");
-                        FileManagement.saveIntoFile(result, countries.get(country).getSlug());
-                    }
-                }else {
-                    System.out.println("Using Country " + countries.get(country).getSlug() + " History Data");
+                String countrySlug = countries.get(country).getSlug();
+                String countryName = countries.get(country).getCountryName();
+                Worker worker = new Worker (countrySlug, countryName, country, data, mainScene);
+                workers[country] = worker;
+                Thread thread = new Thread (worker);
+                threads[country] = thread;
+                es.execute(worker);
+                try {
+                    TimeUnit.SECONDS.sleep(2);
+                } catch (InterruptedException ex) {
+                    System.out.println("Unable to sleep for awhile");
                 }
-            } catch (MalformedURLException ex) {
-                //remember to change to custom error handling
-                System.out.println("Access point to the API has been changed. Searching for data history in repository");
-            } catch (IOException ex) {
-                System.out.println("Unable to connect with the API's server");
-                result = FileManagement.getFromFile(countries.get(country).getSlug(), 1);
-                forced = 1;
-            } finally {
-                if (!(result.equals("") || result == "" || result.equals("[]"))) {
-                    if (forced == 1) {
-                        ShowError.error("Unable to fetch new data from API server!!!", "Error: Unable to fetch new data from server, currently using old data for " + countries.get(country).getCountryName());
-                    }
-                    data.add(result);
-                    try {
-                        TimeUnit.SECONDS.sleep(2);
-                    } catch (InterruptedException ex) {
-                        System.out.println("Unable to sleep for awhile");
-                    }
-                    System.out.println("getted " + countries.get(country).getCountryName());
-                }else {
-                    if (timeOut > 1) {
-                        CountryViewController.changeCursorToNormal(mainScene);
-                        ShowError.error("Error, No data available!!!", "Couldn't load API data and there's no history data for " + countries.get(country).getCountryName());
-                        countries.remove(country);
-                        country--;
-                        timeOut = 0;
-                    }else {
-                        System.out.println(timeOut);
-                        timeOut++;
-                        country--;
-                    }
-                }
+            }catch (Exception ex) {
+                ex.printStackTrace();
             }
         }
+        es.shutdown();
+        try {
+            boolean finished = es.awaitTermination(1, TimeUnit.MINUTES);
+            if (finished) {
+                for (int index = 0; index < threads.length; index++) {
+                    data.add(workers[index].getResult());
+                }
+            }
+        }catch (InterruptedException ex) {
+            ex.printStackTrace();
+        }
+        
         ArrayList<CompareData> parsedData = parseData(data, countries);
         return parsedData;
     }
     
     private ArrayList<CompareData> parseData (ArrayList<String> result, ArrayList<CountriesData> countries) {
+        String country = "";
         ArrayList<CompareData> parsed = new ArrayList<CompareData>();
-        int timeOut=0;
-        for (int x = 0;x<countries.size();) {
+        for (int x = 0;x<countries.size();x++) {
             try {
                 ArrayList<Integer> allCases = new ArrayList<Integer>();
                 ArrayList<Integer> allDeaths = new ArrayList<Integer>();
@@ -357,22 +324,14 @@ public class ComparingDataController implements Initializable {
                     allActive.add(json.getJSONObject(y).getInt("Active"));
                     dates.add(json.getJSONObject(y).getString("Date").substring(0,10));
                 }
-                
-                String country = countries.get(x).getCountryName();
+                System.out.println("data length " + dates.size());
+                country = countries.get(x).getCountryName();
                 String slug = countries.get(x).getSlug();
-                x++;
                 parsed.add(new CompareData(country, slug, allCases, allDeaths, allRecovered, allActive, dates));
-
             }catch (JSONException ex) {
-                System.out.println("File Integrity changed, requesting new data from server");
-                parsed = getCountriesData(countries, 1);
-                timeOut++;
-                if (timeOut == 4){
-                    //this need to be popped up
-                    ShowError.error("Error, No data available!!!", "Couldn't load API data and there's no history data for " + countries.get(x).getSlug());
-                }
+                System.out.println("File Integrity changed, skipping " + country);
             }catch (RuntimeException ex) {
-                x++;
+                ex.printStackTrace();
                 ShowError.error("Error, No data available!!!", "Couldn't load API data and there's no history data for " + countries.get(x).getSlug());
             }
         }
@@ -568,5 +527,93 @@ public class ComparingDataController implements Initializable {
     
     public void changeCursorToLoading (Scene mainScene) {
         mainScene.setCursor(Cursor.WAIT);
+    }
+}
+
+class Worker implements Runnable {
+    private String countrySlug, countryName;
+    private ArrayList<String> countries;
+    private Scene mainScene;
+    private String result;
+    private int countryNum;
+    
+    public Worker (String countrySlug, String countryName,int countryNum, 
+                            ArrayList<String> countries, Scene mainScene){
+        this.countryName = countryName;
+        this.countrySlug = countrySlug;
+        this.mainScene = mainScene;
+        this.countries = countries;
+    }
+    
+    @Override
+    public void run() {
+        runRequest(0);
+    }
+    
+    public String getResult () {
+        return this.result;
+    }
+    
+    private void runRequest (int timeOut) {
+        final String apiURL = "https://api.covid19api.com/total/country/" + this.countrySlug;
+        String result = FileManagement.getFromFile(this.countrySlug);
+        boolean forced = false;
+        try {
+            if (timeOut < 3) {
+                URL website = new URL(apiURL);
+                HttpURLConnection conn = (HttpURLConnection) website.openConnection();
+                conn.setRequestMethod("GET");
+                conn.addRequestProperty("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36");
+                conn.connect();
+
+                int responseCode = conn.getResponseCode(); //200 means ok
+                if (responseCode != 200) {
+                    //remember to make a new custom error window for this refer last project
+                    //implement various code response later
+
+                    throw new RuntimeException("HttpResponseCode: " + responseCode);
+                }else {
+                    System.out.println("Try getting " + countrySlug + " data from Server");
+                    BufferedReader r  = new BufferedReader(new InputStreamReader(conn.getInputStream(), Charset.forName("UTF-8")));
+                    StringBuilder sb = new StringBuilder();
+                    String line;
+
+                    while ((line = r.readLine()) != null) {
+                        sb.append(line);
+                    }
+
+                    result = sb.toString();
+                    System.out.println("used api data");
+                    FileManagement.saveIntoFile(result, countrySlug);
+                }
+            }else {
+                System.out.println("Using Country " + countrySlug + " History Data");
+            }
+        } catch (MalformedURLException ex) {
+            //remember to change to custom error handling
+            System.out.println("Access point to the API has been changed. Searching for data history in repository");
+        } catch (IOException ex) {
+            System.out.println("Unable to connect with the API's server");
+            result = FileManagement.getFromFile(countrySlug, 1);
+            forced = true;
+        } finally {
+            if (!(result.equals("") || result == "" || result.equals("[]"))) {
+                if (forced) {
+                    ShowError.error("Unable to fetch new data from API server!!!", "Error: Unable to fetch new data from server, currently using old data for " + countryName);
+                }
+                this.result = result;
+                System.out.println(result);
+                System.out.println("Received data for " + countryName);
+            }else {
+                if (timeOut > 2) {
+                    CountryViewController.changeCursorToNormal(mainScene);
+                    ShowError.error("Error, No data available!!!", "Couldn't load API data and there's no history data for " + countryName);
+                    countries.remove(countryNum);
+                }else {
+                    timeOut++;
+                    runRequest (timeOut);
+                }
+            }
+        }
     }
 }
