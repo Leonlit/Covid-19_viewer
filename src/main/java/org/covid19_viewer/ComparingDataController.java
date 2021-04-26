@@ -14,8 +14,6 @@ import java.util.ResourceBundle;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -267,7 +265,6 @@ public class ComparingDataController implements Initializable {
     
     private ArrayList<CompareData> getCountriesData (ArrayList<CountriesData> countries) {
         ArrayList<String> data = new ArrayList<String>();
-        Thread threads[] = new Thread[countries.size()];
         Worker workers[] = new Worker[countries.size()];
         ExecutorService es = Executors.newCachedThreadPool();
         
@@ -277,15 +274,13 @@ public class ComparingDataController implements Initializable {
                 String countryName = countries.get(country).getCountryName();
                 Worker worker = new Worker (countrySlug, countryName, country, data, mainScene);
                 workers[country] = worker;
-                Thread thread = new Thread (worker);
-                threads[country] = thread;
                 es.execute(worker);
                 try {
                     TimeUnit.SECONDS.sleep(2);
                 } catch (InterruptedException ex) {
                     System.out.println("Unable to sleep for awhile");
                 }
-            }catch (Exception ex) {
+            }catch (RuntimeException ex) {
                 ex.printStackTrace();
             }
         }
@@ -293,7 +288,7 @@ public class ComparingDataController implements Initializable {
         try {
             boolean finished = es.awaitTermination(1, TimeUnit.MINUTES);
             if (finished) {
-                for (int index = 0; index < threads.length; index++) {
+                for (int index = 0; index < workers.length; index++) {
                     data.add(workers[index].getResult());
                 }
             }
