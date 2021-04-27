@@ -367,62 +367,74 @@ public class CountryViewController implements Initializable {
     public static void setupLineChart (LineChart<String,Number> chart, ArrayList<Integer> optionsMax,
                                 CheckBox logChart, AnchorPane mainPane, ScrollPane graphCont,
                                 AnchorPane graphPlace, Scene mainScene) {
-        
-        int counter = 0;
-        for (Series<String,Number> serie: chart.getData()){
-            int max = optionsMax.get(counter);
-            for (XYChart.Data<String, Number> item: serie.getData()){
-                final Label caption = new Label("");
-                final Label date = new Label("");
-                final VBox container = new VBox();
-                item.getNode().addEventHandler(MouseEvent.MOUSE_PRESSED, (MouseEvent e) -> {
-                    caption.setTextFill(Color.BLACK);
-                    container.setStyle("-fx-font: 22 arial;" + 
-                                    "-fx-padding: 5px;" + 
-                                    "-fx-border-radius: 5px;" + 
-                                    "-fx-background-radius: 5px;" +
-                                    "-fx-background-color: rgba(255, 255, 255, 0.5);");
-                    container.setTranslateX(e.getSceneX() - 50);
-                    container.setTranslateY(e.getSceneY() - 20);
-                    final int value = getBackValueFromLog(
-                                            Double.parseDouble(
-                                                String.valueOf(
-                                                        item.getYValue()
-                                                )
-                                            ),
-                                        max, logChart);
-                    date.setStyle("-fx-font: 18 arial;");
-                    caption.setText(Integer.toString(value));
-                    String dateValue = item.getXValue();
-                    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-                    Date convertedDate = new Date();
-                    try {
-                        convertedDate = dateFormat.parse(dateValue);
-                        SimpleDateFormat changedFormaat = new SimpleDateFormat("dd-MMM-yyyy");
-                        String changedValue = changedFormaat.format(convertedDate);
-                        date.setText(changedValue);
-                    } catch (ParseException exc) {
-                        exc.printStackTrace();
-                    }
-                    container.getChildren().addAll(caption, date);
-                    mainPane.getChildren().add(container);
-                });
-                item.getNode().addEventHandler(MouseEvent.MOUSE_RELEASED, (MouseEvent e) -> {
-                    container.getChildren().removeAll(caption, date);
-                    mainPane.getChildren().remove(container);
-                });
+        System.out.println(chart); 
+        System.out.println(optionsMax);
+        System.out.println(logChart);
+        System.out.println(mainPane);
+        System.out.println(graphCont);
+        System.out.println(graphPlace);
+        System.out.println(mainScene);
+        try {
+            int counter = 0;
+            for (Series<String,Number> serie: chart.getData()){
+                int max = optionsMax.get(counter);
+                for (XYChart.Data<String, Number> item: serie.getData()){
+                    final Label caption = new Label("");
+                    final Label date = new Label("");
+                    final VBox container = new VBox();
+                    item.getNode().addEventHandler(MouseEvent.MOUSE_PRESSED, (MouseEvent e) -> {
+                        caption.setTextFill(Color.BLACK);
+                        container.setStyle("-fx-font: 22 arial;" + 
+                                        "-fx-padding: 5px;" + 
+                                        "-fx-border-radius: 5px;" + 
+                                        "-fx-background-radius: 5px;" +
+                                        "-fx-background-color: rgba(255, 255, 255, 0.5);");
+                        container.setTranslateX(e.getSceneX() - 50);
+                        container.setTranslateY(e.getSceneY() - 20);
+                        final int value = getBackValueFromLog(
+                                                Double.parseDouble(
+                                                    String.valueOf(
+                                                            item.getYValue()
+                                                    )
+                                                ),
+                                            max, logChart);
+                        date.setStyle("-fx-font: 18 arial;");
+                        caption.setText(Integer.toString(value));
+                        String dateValue = item.getXValue();
+                        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                        Date convertedDate = new Date();
+                        try {
+                            convertedDate = dateFormat.parse(dateValue);
+                            SimpleDateFormat changedFormaat = new SimpleDateFormat("dd-MMM-yyyy");
+                            String changedValue = changedFormaat.format(convertedDate);
+                            date.setText(changedValue);
+                        } catch (ParseException exc) {
+                            exc.printStackTrace();
+                        }
+                        container.getChildren().addAll(caption, date);
+                        mainPane.getChildren().add(container);
+                    });
+                    item.getNode().addEventHandler(MouseEvent.MOUSE_RELEASED, (MouseEvent e) -> {
+                        container.getChildren().removeAll(caption, date);
+                        mainPane.getChildren().remove(container);
+                    });
+                }
+                counter++;
             }
-            counter++;
-        }
 
-        chart.setMinWidth(1400);
-        graphCont.setMinViewportWidth(1400);
-        graphPlace.getChildren().add(chart);
-        chart.setLegendVisible(true);
-        changeCursorToNormal(mainScene);
+            chart.setMinWidth(1400);
+            graphCont.setMinViewportWidth(1400);
+            graphPlace.getChildren().add(chart);
+            chart.setLegendVisible(true);
+            changeCursorToNormal(mainScene);
+            System.out.println("finish drawing");
+        }catch (RuntimeException ex) {
+            ex.printStackTrace();
+        }
     }
         
     public static void changeCursorToNormal (Scene mainScene) {
+        System.out.println("Changed cursor");
         mainScene.setCursor(Cursor.DEFAULT);
     }
 }

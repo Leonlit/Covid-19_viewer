@@ -14,9 +14,13 @@ import java.util.ResourceBundle;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
+import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -184,64 +188,80 @@ public class ComparingDataController implements Initializable {
                         countryList.add(dataCont.get(2));
                     }
 
-                    ArrayList<CompareData> parsedData = new ArrayList<CompareData>();
-
-                    parsedData = getCountriesData(countryList);
-
-                    ArrayList<ArrayList<Integer>> options = new ArrayList<ArrayList<Integer>>();
-                    for (int country = 0; country < parsedData.size();country++) {
-                        for (int x = 0 ; x< option.length;x++) {
-                           switch (option[x]) {
-                                case 0:
-                                    options.add(parsedData.get(country).getAllCases());
-                                    break;
-                                case 1:
-                                    options.add(parsedData.get(country).getAllDeaths());
-                                    break;
-                                case 2:
-                                    options.add(parsedData.get(country).getAllRecovered());
-                                    break;
-                                case 3:
-                                    options.add(parsedData.get(country).getAllActive());
-                                    break;
-                            }
+                    Task<ArrayList<CompareData>> task = new Task<ArrayList<CompareData>>() {
+                        @Override
+                        public ArrayList<CompareData> call() {
+                            return getCountriesData(countryList);
                         }
-                    }
-
-                    final CategoryAxis xAxis = new CategoryAxis();
-                    final NumberAxis yAxis = new NumberAxis();
-
-                    LineChart<String,Number> chart = new LineChart<String,Number>(xAxis,yAxis);
-                    String title = "";
-                    for (int x = 0;x< countryList.size();x++) {
-                        title += countryList.get(x).getCountryName() + ", ";
-                    }
+                    };
                     
-                    title = title.substring(0, title.length() - 2);
-                    if (CountryViewController.isLogChartSelected(logChart)) {
-                        title += " (logarithmic chart view)";
-                    }
-                    
-                    chart.setTitle("Comparing Data - " + title);
-                    for (int country = 0; country < parsedData.size();country++) {
-                        for (int line=0;line<checks.length;line++) {
-                            int max = Collections.max(options.get(line + (country * checks.length)));
-                            optionsMaxValue.add(max);
-                            XYChart.Series data = new XYChart.Series();
-                            data.setName(parsedData.get(country).getCountryName() + "." + legends[Integer.parseInt(checks[line])]);
-                            ArrayList<Integer> currItem = options.get(line + (country * checks.length));
-                            for (int x = getDataConstrainer(currItem, constraints); x < currItem.size();x++) {
-                                double value = CountryViewController.getBackLogValueIfSelected(options.get(line + (country * checks.length)).get(x), max, logChart);
-                                data.getData().add(new XYChart.Data(parsedData.get(country).getAllDates().get(x), CountryViewController.isLogChartSelected(logChart) ? value : (int)value ));
+                    task.setOnSucceeded(e -> {
+                        ArrayList<CompareData> parsedData = new ArrayList<CompareData>();
+                        parsedData = task.getValue();
+                        System.out.println(parsedData.get(0).getAllDates().size());
+                        ArrayList<ArrayList<Integer>> options = new ArrayList<ArrayList<Integer>>();
+                        try {
+                            for (int country = 0; country < parsedData.size();country++) {
+                                for (int x = 0 ; x< option.length;x++) {
+                                   switch (option[x]) {
+                                        case 0:
+                                            options.add(parsedData.get(country).getAllCases());
+                                            break;
+                                        case 1:
+                                            options.add(parsedData.get(country).getAllDeaths());
+                                            break;
+                                        case 2:
+                                            options.add(parsedData.get(country).getAllRecovered());
+                                            break;
+                                        case 3:
+                                            options.add(parsedData.get(country).getAllActive());
+                                            break;
+                                    }
+                                }
                             }
-                            chart.getData().add(data);
-                        }
-                    }
-                    CountryViewController.setupLineChart(chart, optionsMaxValue, logChart, 
+
+                            final CategoryAxis xAxis = new CategoryAxis();
+                            final NumberAxis yAxis = new NumberAxis();
+
+                            LineChart<String,Number> chart = new LineChart<String,Number>(xAxis,yAxis);
+                            String title = "";
+                            for (int x = 0;x< countryList.size();x++) {
+                                title += countryList.get(x).getCountryName() + ", ";
+                            }
+
+                            title = title.substring(0, title.length() - 2);
+                            if (CountryViewController.isLogChartSelected(logChart)) {
+                                title += " (logarithmic chart view)";
+                            }
+
+                            chart.setTitle("Comparing Data - " + title);
+                            
+                            for (int country = 0; country < parsedData.size();country++) {
+                                for (int line=0;line<checks.length;line++) {
+                                    int max = Collections.max(options.get(line + (country * checks.length)));
+                                    optionsMaxValue.add(max);
+                                    XYChart.Series data = new XYChart.Series();
+                                    data.setName(parsedData.get(country).getCountryName() + "." + legends[Integer.parseInt(checks[line])]);
+                                    ArrayList<Integer> currItem = options.get(line + (country * checks.length));
+                                    for (int x = getDataConstrainer(currItem, constraints); x < currItem.size();x++) {
+                                        double value = CountryViewController.getBackLogValueIfSelected(options.get(line + (country * checks.length)).get(x), max, logChart);
+                                        String date = parsedData.get(country).getAllDates().get(x);
+                                        data.getData().add(new XYChart.Data(date, CountryViewController.isLogChartSelected(logChart) ? value : (int)value ));
+                                    }
+                                    chart.getData().add(data);
+                                }
+                            }
+                            
+                            CountryViewController.setupLineChart(chart, optionsMaxValue, logChart, 
                                                         mainPane, graphCont, graphPlace, mainScene);
+                        }catch (RuntimeException ex) {
+                            ex.printStackTrace();
+                        }
+                    });
+                    new Thread(task).start();
                 }
             }catch (RuntimeException ex) {
-                System.out.println(ex);
+                ex.printStackTrace();
             }
         }
     }
@@ -264,36 +284,13 @@ public class ComparingDataController implements Initializable {
     }
     
     private ArrayList<CompareData> getCountriesData (ArrayList<CountriesData> countries) {
+        System.out.println(countries.size());
         ArrayList<String> data = new ArrayList<String>();
-        Worker workers[] = new Worker[countries.size()];
-        ExecutorService es = Executors.newCachedThreadPool();
-        
         for (int country = 0; country < countries.size();country++) {
-            try {
-                String countrySlug = countries.get(country).getSlug();
-                String countryName = countries.get(country).getCountryName();
-                Worker worker = new Worker (countrySlug, countryName, country, data, mainScene);
-                workers[country] = worker;
-                es.execute(worker);
-                try {
-                    TimeUnit.SECONDS.sleep(2);
-                } catch (InterruptedException ex) {
-                    System.out.println("Unable to sleep for awhile");
-                }
-            }catch (RuntimeException ex) {
-                ex.printStackTrace();
-            }
-        }
-        es.shutdown();
-        try {
-            boolean finished = es.awaitTermination(1, TimeUnit.MINUTES);
-            if (finished) {
-                for (int index = 0; index < workers.length; index++) {
-                    data.add(workers[index].getResult());
-                }
-            }
-        }catch (InterruptedException ex) {
-            ex.printStackTrace();
+            String countrySlug = countries.get(country).getSlug();
+            String countryName = countries.get(country).getCountryName();
+            Worker worker = new Worker (countrySlug, countryName, country, data, mainScene);
+            data.add(worker.getResult());
         }
         
         ArrayList<CompareData> parsedData = parseData(data, countries);
@@ -392,6 +389,7 @@ public class ComparingDataController implements Initializable {
             System.out.println("Access point to the API has been changed. Searching for data history in repository");
         } catch (IOException | RuntimeException ex) {
             System.out.println("Unable to connect with the API's server, searching for history data in directory");
+            ex.printStackTrace();
             result = FileManagement.getFromFile("countries", 1);
         }finally {
             if (!(result.equals("") || result == "")) {
@@ -525,7 +523,7 @@ public class ComparingDataController implements Initializable {
     }
 }
 
-class Worker implements Runnable {
+class Worker {
     private String countrySlug, countryName;
     private ArrayList<String> countries;
     private Scene mainScene;
@@ -538,10 +536,6 @@ class Worker implements Runnable {
         this.countrySlug = countrySlug;
         this.mainScene = mainScene;
         this.countries = countries;
-    }
-    
-    @Override
-    public void run() {
         runRequest(0);
     }
     
@@ -550,7 +544,7 @@ class Worker implements Runnable {
     }
     
     private void runRequest (int timeOut) {
-        final String apiURL = "https://api.covid19api.com/total/country/" + this.countrySlug;
+        final String apiURL = "https://api.covid19api.com/total/country/" + this.countrySlug + "?from=2020-03-01T00:00:00Z&to=2020-04-01T00:00:00Z";
         String result = FileManagement.getFromFile(this.countrySlug);
         boolean forced = false;
         try {
@@ -584,20 +578,21 @@ class Worker implements Runnable {
             }else {
                 System.out.println("Using Country " + countrySlug + " History Data");
             }
-        } catch (MalformedURLException ex) {
+        }catch (MalformedURLException ex) {
             //remember to change to custom error handling
             System.out.println("Access point to the API has been changed. Searching for data history in repository");
-        } catch (IOException ex) {
+        }catch (IOException ex) {
             System.out.println("Unable to connect with the API's server");
             result = FileManagement.getFromFile(countrySlug, 1);
             forced = true;
-        } finally {
+        }catch (RuntimeException ex) {
+            ex.printStackTrace();
+        }finally {
             if (!(result.equals("") || result == "" || result.equals("[]"))) {
                 if (forced) {
                     ShowError.error("Unable to fetch new data from API server!!!", "Error: Unable to fetch new data from server, currently using old data for " + countryName);
                 }
                 this.result = result;
-                System.out.println(result);
                 System.out.println("Received data for " + countryName);
             }else {
                 if (timeOut > 2) {

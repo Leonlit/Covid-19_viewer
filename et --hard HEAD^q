@@ -1,0 +1,217 @@
+[33mcommit 41dbb0032078d592448b271c75dae6e6e1c272b2[m[33m ([m[1;36mHEAD -> [m[1;32mmaster[m[33m)[m
+Author: Leon <leonlit123@gmail.com>
+Date:   Tue Apr 27 11:10:54 2021 +0800
+
+    Revert "Create README.md"
+    
+    This reverts commit 5032189272fe7b4850acd5dd53b93e56503013eb.
+
+[33mcommit cb82f38a82f3efbad0b6856154671ce092664b33[m[33m ([m[1;31morigin/master[m[33m)[m
+Author: Leon <leonlit123@gmail.com>
+Date:   Mon Apr 26 22:40:12 2021 +0800
+
+    fixed some bugs, still working on the weird null pointer exception
+
+[33mcommit a15f1acb10fffdf9693b466b357d359a087523a8[m
+Author: Leon <leonlit123@gmail.com>
+Date:   Mon Apr 26 17:07:35 2021 +0800
+
+    finally decided to start using multi-threading. Currently, only used it for the comparing data section
+
+[33mcommit 5032189272fe7b4850acd5dd53b93e56503013eb[m
+Author: Leon <leonlit123@gmail.com>
+Date:   Wed Dec 2 13:57:15 2020 +0800
+
+    Create README.md
+
+[33mcommit e2345071421a5be6c4f6f56d662350e75d83d1e3[m
+Author: Leon <leonlit123@gmail.com>
+Date:   Wed Dec 2 12:07:05 2020 +0800
+
+    Added asset folder for image and other media
+
+[33mcommit e8a518c7afa5d4a82d99e771d4874b7dc4af7121[m
+Author: Leon <leonlit123@gmail.com>
+Date:   Wed Dec 2 11:52:12 2020 +0800
+
+    Create LICENSE
+
+[33mcommit 65997767eed91389e79e32cc09e4a9e7895fa032[m
+Author: Leon <leonlit123@gmail.com>
+Date:   Tue Nov 24 11:07:20 2020 +0800
+
+    Added date for data caption to charts
+
+[33mcommit 0faffa26fad3380650443c1bb35e0d3abc4d4c94[m
+Author: Leon <leonlit123@gmail.com>
+Date:   Sun Nov 15 22:26:20 2020 +0800
+
+    added ways to deploy app
+
+[33mcommit 4cf79ea0dc2ce5c4c2fec5d1a998213cc2861efd[m
+Author: Leon <leonlit123@gmail.com>
+Date:   Thu Oct 29 20:57:24 2020 +0800
+
+    Fixed cursor problem
+
+[33mcommit 8ebe5a144c1aabfe37b2c9b6c770531014dd15d0[m
+Author: Leon <leonlit123@gmail.com>
+Date:   Wed Oct 28 22:15:16 2020 +0800
+
+    WIP still cannot fix the cursor problem
+
+[33mcommit 1276f608f6e526213840c2f3471676884b8bb189[m
+Author: Leon <leonlit123@gmail.com>
+Date:   Wed Oct 28 15:51:26 2020 +0800
+
+    update code & added cursor change when loading API data
+
+[33mcommit d651ee8d3c96534dbf31cb0f2c81245dc289d419[m
+Author: Leon <leonlit123@gmail.com>
+Date:   Tue Oct 27 15:02:56 2020 +0800
+
+    Initial version for viewing data by date in comparing data page done
+
+[33mcommit 82d4db534fba84a37b6f92d1b87b63959d3941f9[m
+Author: Leon <leonlit123@gmail.com>
+Date:   Mon Oct 26 17:30:02 2020 +0800
+
+    added functions for displaying data based on selected date(range)
+
+[33mcommit 81ca485e0f5c27437716b83759e71fc21bdf47d5[m
+Author: Leon <leonlit123@gmail.com>
+Date:   Mon Oct 26 10:05:14 2020 +0800
+
+    added logarithmic chart view in data comparing page
+
+[33mcommit eca760ca68d8a01467e9f45e6f36b0aca6673ded[m
+Author: Leon <leonlit123@gmail.com>
+Date:   Sun Oct 25 21:43:35 2020 +0800
+
+    country views log view done
+
+[33mcommit 2509137d50cd71fdf1167b2367195688b6149076[m
+Author: Leon <leonlit123@gmail.com>
+Date:   Sat Oct 24 23:10:29 2020 +0800
+
+    WIP for log charts
+
+[33mcommit 9bcfe273ca67e7334d37a5b1cb104b457194a9e0[m
+Author: Leon <leonlit123@gmail.com>
+Date:   Sat Oct 24 15:39:36 2020 +0800
+
+    fixed the comparing data page search, now working on log graph
+
+[33mcommit 2f21214c1eff8fc3235471c63cb1b79e396aa4c8[m
+Author: Leon <leonlit123@gmail.com>
+Date:   Fri Oct 23 23:10:21 2020 +0800
+
+    Still working on fixing the country search in comparing page
+
+[33mcommit a29cdcadea973e73f71c3ff3ec1e4cd948846b38[m
+Author: Leon <leonlit123@gmail.com>
+Date:   Thu Oct 22 16:12:47 2020 +0800
+
+    Done with country name searching widget for both main page and comparing country data page
+
+[33mcommit 199674e1a1fa09b1d29396f78f016d880924b897[m
+Author: Leon <leonlit123@gmail.com>
+Date:   Wed Oct 21 17:49:21 2020 +0800
+
+    WIP
+
+[33mcommit eb699d701de3ae8b466ed9f26efb2d821e393528[m
+Author: Leon <leonlit123@gmail.com>
+Date:   Tue Oct 20 23:05:33 2020 +0800
+
+    WIP
+
+[33mcommit 0e7dc911bf775f75783856705c621c8d86391b0f[m
+Author: Leon <leonlit123@gmail.com>
+Date:   Tue Oct 20 14:55:56 2020 +0800
+
+    changing project for deployment
+
+[33mcommit 17261a478d7a02dfc527de6bb2b4fd7549063e45[m
+Author: Leon <leonlit123@gmail.com>
+Date:   Wed Jul 15 17:47:44 2020 +0800
+
+    removed unnecessary files
+
+[33mcommit f12d252acca62b4bce44a1c8b41f24f9aade4a7b[m
+Author: Leon <leonlit123@gmail.com>
+Date:   Wed Jul 15 17:46:14 2020 +0800
+
+    updated code
+
+[33mcommit 88af4cbbe2b3806214a6ff8eb98f73c3e941068a[m
+Author: Leon <leonlit123@gmail.com>
+Date:   Sat Jul 4 23:41:26 2020 +0800
+
+    updated code
+
+[33mcommit f254e8d520f2b84166ad861e8015a7bd651bfab9[m
+Author: Leon <leonlit123@gmail.com>
+Date:   Sat Jul 4 22:09:19 2020 +0800
+
+    added login page for the app
+
+[33mcommit f16f53fc655a13e5da9e512a1e03600a199c80a1[m
+Author: Leon <leonlit123@gmail.com>
+Date:   Fri Jul 3 23:09:26 2020 +0800
+
+    updated code and now the app will show errors
+
+[33mcommit a3dd6caa548faf59b545db24f1e21a990520f4eb[m
+Author: Leon <leonlit123@gmail.com>
+Date:   Fri Jul 3 17:39:40 2020 +0800
+
+    The project now is finished, left error handling
+
+[33mcommit 92c8e51e8d498aed7f3951c2cfeb92ec09969f20[m
+Author: Leon <leonlit123@gmail.com>
+Date:   Fri Jul 3 10:30:28 2020 +0800
+
+    update code, still working on the comparing data features
+
+[33mcommit 520ade383003d568107076a482429bdaba5d475e[m
+Author: Leon <leonlit123@gmail.com>
+Date:   Thu Jul 2 23:18:40 2020 +0800
+
+    Fixed some bugs with the pie chart where 0 number will produce unwanted view. Now working on the comparing data by countries
+
+[33mcommit 1f320df5779ca6fc0cbf0a0219a1d58a3da81c17[m
+Author: Leon <leonlit123@gmail.com>
+Date:   Thu Jul 2 20:30:01 2020 +0800
+
+    completed the individual country data viewer, no working on the comparing features
+
+[33mcommit 0548f14720ef762b0c4623b0afe3e60e8f73bdc1[m
+Author: Leon <leonlit123@gmail.com>
+Date:   Wed Jul 1 18:03:12 2020 +0800
+
+    now user can view individual country data's
+
+[33mcommit ae2c9147e200072963b47c90ebe734e56659bc8f[m
+Author: Leon <leonlit123@gmail.com>
+Date:   Wed Jul 1 11:22:27 2020 +0800
+
+    now the app can sace data & check file data integrity as well as getting data from the directory (to reduce server request)
+
+[33mcommit 28d7ee1223230f36b8ae52e2bf662259caed73d9[m
+Author: Leon <leonlit123@gmail.com>
+Date:   Wed Jul 1 08:45:09 2020 +0800
+
+    code update
+
+[33mcommit 132e7ab3142a61c8a464a069703a6941245b9fd6[m
+Author: Leon <leonlit123@gmail.com>
+Date:   Tue Jun 30 14:19:15 2020 +0800
+
+    The project now can draw graph and display the number of cases
+
+[33mcommit 23e1f009a76faca32223ad4ec94fac25477deca5[m
+Author: Leon <leonlit123@gmail.com>
+Date:   Tue Jun 30 08:59:52 2020 +0800
+
+    initialized the project
