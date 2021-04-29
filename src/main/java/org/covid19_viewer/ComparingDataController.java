@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.ResourceBundle;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -275,15 +276,30 @@ public class ComparingDataController implements Initializable {
     
     private ArrayList<CompareData> getCountriesData (ArrayList<CountriesData> countries) {
         ArrayList<String> data = new ArrayList<String>();
-        for (int country = 0; country < countries.size();country++) {
-            String countrySlug = countries.get(country).getSlug();
-            String countryName = countries.get(country).getCountryName();
-            Worker worker = new Worker (countrySlug, countryName, country, data, mainScene);
-            
-            data.add(worker.getResult());
+        try {
+            for (int country = 0; country < countries.size();country++) {
+                String countrySlug = countries.get(country).getSlug();
+                String countryName = countries.get(country).getCountryName();
+                Worker worker = new Worker (countrySlug, countryName);
+                String result = worker.getResult();
+                if (result == null) {
+                    Platform.runLater(() -> {
+                        ShowError.error("Error, No data available!!!", "Couldn't load API data and there's no history data for " + countryName);
+                    });
+                    countries.remove(country);
+                    country--;
+                }else {
+                    data.add(result);
+                }
+            }
+        }catch (Exception ex) {
+            ex.printStackTrace();
         }
         
-        ArrayList<CompareData> parsedData = parseData(data, countries);
+        ArrayList<CompareData> parsedData = new ArrayList<CompareData>();
+        if (data.get(0) != null) {
+            parsedData = parseData(data, countries);
+        }
         return parsedData;
     }
     
@@ -510,17 +526,11 @@ public class ComparingDataController implements Initializable {
 
 class Worker {
     private String countrySlug, countryName;
-    private ArrayList<String> countries;
-    private Scene mainScene;
     private String result;
-    private int countryNum;
     
-    public Worker (String countrySlug, String countryName,int countryNum, 
-                            ArrayList<String> countries, Scene mainScene){
+    public Worker (String countrySlug, String countryName){
         this.countryName = countryName;
         this.countrySlug = countrySlug;
-        this.mainScene = mainScene;
-        this.countries = countries;
         runRequest(0);
     }
     
@@ -533,7 +543,7 @@ class Worker {
         String result = FileManagement.getFromFile(this.countrySlug);
         boolean forced = false;
         try {
-            if (timeOut < 3) {
+            if (result.equals("") || result.equals("[]")) {
                 URL website = new URL(apiURL);
                 HttpURLConnection conn = (HttpURLConnection) website.openConnection();
                 conn.setRequestMethod("GET");
@@ -557,11 +567,13 @@ class Worker {
                     }
 
                     result = sb.toString();
-                    System.out.println("used api data");
-                    FileManagement.saveIntoFile(result, countrySlug);
+                    if (!(result.equals("[]") || result.equals(""))) {
+                        System.out.println("used api data");
+                        FileManagement.saveIntoFile(result, countrySlug); 
+                    }
                 }
             }else {
-                System.out.println("Using Country " + countrySlug + " History Data");
+                result = FileManagement.getFromFile(this.countrySlug, 1);
             }
         }catch (MalformedURLException ex) {
             //remember to change to custom error handling
@@ -580,10 +592,7 @@ class Worker {
                 this.result = result;
                 System.out.println("Received data for " + countryName);
             }else {
-                if (timeOut > 2) {
-                    ShowError.error("Error, No data available!!!", "Couldn't load API data and there's no history data for " + countryName);
-                    countries.remove(countryNum);
-                }else {
+                if (timeOut < 2) {
                     timeOut++;
                     runRequest (timeOut);
                 }

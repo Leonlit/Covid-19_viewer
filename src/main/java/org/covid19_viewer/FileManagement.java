@@ -14,10 +14,6 @@ import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/**
- *
- * @author User
- */
 public class FileManagement {
     
     public FileManagement () {
@@ -73,9 +69,11 @@ public class FileManagement {
                                 + File.separator + type +".txt";
             Scanner input = new Scanner(new File(fileName));
             data = input.nextLine();
+            input.close();
             System.out.println("Forcefully Getting History Data");
         }catch (IOException ex) {
             System.out.println("Error when getting data from file");
+            System.out.println("The history file does not exist");
         }
         return data;
     }
