@@ -11,12 +11,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.ResourceBundle;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -24,7 +18,6 @@ import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.Cursor;
 import javafx.scene.Scene;
 import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.LineChart;
@@ -135,7 +128,6 @@ public class ComparingDataController implements Initializable {
     @FXML
     private void drawAll () {
         if (dataCont.size() != 0) {
-            changeCursorToLoading(mainScene);
             casesT.setSelected(true);
             recoveredT.setSelected(true);
             deathsT.setSelected(true);
@@ -168,7 +160,6 @@ public class ComparingDataController implements Initializable {
                     checked += "3";
                 }
                 if (checked.length() > 0) {
-                    changeCursorToLoading(mainScene);
                     String checks[] = checked.split("");
                     int option[] = new int[checks.length];
                     int counter = 0;
@@ -198,7 +189,6 @@ public class ComparingDataController implements Initializable {
                     task.setOnSucceeded(e -> {
                         ArrayList<CompareData> parsedData = new ArrayList<CompareData>();
                         parsedData = task.getValue();
-                        System.out.println(parsedData.get(0).getAllDates().size());
                         ArrayList<ArrayList<Integer>> options = new ArrayList<ArrayList<Integer>>();
                         try {
                             for (int country = 0; country < parsedData.size();country++) {
@@ -284,12 +274,12 @@ public class ComparingDataController implements Initializable {
     }
     
     private ArrayList<CompareData> getCountriesData (ArrayList<CountriesData> countries) {
-        System.out.println(countries.size());
         ArrayList<String> data = new ArrayList<String>();
         for (int country = 0; country < countries.size();country++) {
             String countrySlug = countries.get(country).getSlug();
             String countryName = countries.get(country).getCountryName();
             Worker worker = new Worker (countrySlug, countryName, country, data, mainScene);
+            
             data.add(worker.getResult());
         }
         
@@ -316,7 +306,6 @@ public class ComparingDataController implements Initializable {
                     allActive.add(json.getJSONObject(y).getInt("Active"));
                     dates.add(json.getJSONObject(y).getString("Date").substring(0,10));
                 }
-                System.out.println("data length " + dates.size());
                 country = countries.get(x).getCountryName();
                 String slug = countries.get(x).getSlug();
                 parsed.add(new CompareData(country, slug, allCases, allDeaths, allRecovered, allActive, dates));
@@ -517,10 +506,6 @@ public class ComparingDataController implements Initializable {
            }
         };
     }
-    
-    public void changeCursorToLoading (Scene mainScene) {
-        mainScene.setCursor(Cursor.WAIT);
-    }
 }
 
 class Worker {
@@ -544,7 +529,7 @@ class Worker {
     }
     
     private void runRequest (int timeOut) {
-        final String apiURL = "https://api.covid19api.com/total/country/" + this.countrySlug + "?from=2020-03-01T00:00:00Z&to=2020-04-01T00:00:00Z";
+        final String apiURL = "https://api.covid19api.com/total/country/" + this.countrySlug;
         String result = FileManagement.getFromFile(this.countrySlug);
         boolean forced = false;
         try {
@@ -596,7 +581,6 @@ class Worker {
                 System.out.println("Received data for " + countryName);
             }else {
                 if (timeOut > 2) {
-                    CountryViewController.changeCursorToNormal(mainScene);
                     ShowError.error("Error, No data available!!!", "Couldn't load API data and there's no history data for " + countryName);
                     countries.remove(countryNum);
                 }else {

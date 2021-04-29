@@ -18,7 +18,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.Cursor;
 import javafx.scene.Scene;
 import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.LineChart;
@@ -42,7 +41,7 @@ public class CountryViewController implements Initializable {
     private ArrayList<Integer> allCases, allDeaths, allRecovered, allActive;
     private ArrayList<String> dates;
     private ArrayList<Integer> optionsMaxValue = new ArrayList<Integer>();
-    private int constraints = 0;
+    private int constraints = 0, maximum;
     final int contraintsArr[] = {30, 90, 180, 365};
     private Scene mainScene;
     
@@ -102,7 +101,7 @@ public class CountryViewController implements Initializable {
             final CategoryAxis xAxis = new CategoryAxis();
             final NumberAxis yAxis = new NumberAxis();
 
-            LineChart<String,Number> chart = new LineChart<String,Number>(xAxis,yAxis);
+            LineChart chart = new LineChart(xAxis,yAxis);
             String title = "";
             for (int x = 0;x<options.size();x++) {
                 title += legends[Integer.parseInt(checks[x])] + ", ";
@@ -122,7 +121,7 @@ public class CountryViewController implements Initializable {
                 int seriesSize = options.get(line).size();
                 for (int x = getDataConstrainer(options.get(line), constraints); x < seriesSize;x++) {
                     double value = getBackLogValueIfSelected(options.get(line).get(x), max, logChart);
-                    data.getData().add(new XYChart.Data(dates.get(x), isLogChartSelected(logChart) ? value : (int)value ));
+                    data.getData().add(new XYChart.Data(dates.get(x), value ));
                 }
                 chart.getData().add(data);
             }
@@ -140,6 +139,14 @@ public class CountryViewController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle rb) {
 
+    }
+    
+    public void setupData (CountryData data, Scene mainScene) {
+        this.data = data;
+        this.mainScene = mainScene;
+        setupValues();
+        setupCountryGraph();
+        showDetailedData(0);
     }
     
     private void setupValues () {
@@ -173,14 +180,6 @@ public class CountryViewController implements Initializable {
         recoveredT.setSelected(true);
         deathsT.setSelected(true);
         activeT.setSelected(true);
-    }
-    
-    public void setupData (CountryData data, Scene mainScene) {
-        this.data = data;
-        this.mainScene = mainScene;
-        setupValues();
-        setupCountryGraph();
-        showDetailedData(0);
     }
     
     private void showDetailedData (int forced) {
@@ -237,7 +236,6 @@ public class CountryViewController implements Initializable {
     
     private void setupCountryGraph () {
         String globalLegends[] = {"New Confirmed", "New Deaths", "New Recovered", "Total Confirmed", "Total Active", "Total Deaths", "Total Recovered"};
-
         //since everthing in JSON is string, we'll need to get the string one by one RIP lel.
         int countryStats[] = { 
                                 data.getNewCases(),
@@ -274,12 +272,12 @@ public class CountryViewController implements Initializable {
             }
             String country = data.getJSONObject(0).getString("Country");
             
-            drawInitialLineChart(allCases, allDeaths, allRecovered, allActive, dates, country);
-            //dataList.add(new PieChart.Data(legends[x], data[x]));
-            
+            drawInitialLineChart(allCases, allDeaths, allRecovered, allActive, dates, country);            
         }catch (JSONException ex) {
             System.out.println("File Integrity changed, requesting new data from server");
             showDetailedData(1);
+        }catch (RuntimeException ex) {
+            ex.printStackTrace();
         }
     }
     
@@ -290,17 +288,16 @@ public class CountryViewController implements Initializable {
         allDeaths = deaths;
         allRecovered = recovered;
         allActive = active;
-        dates = legends;
         
-        final ArrayList allData[] = {totalCases, deaths, recovered, active, legends};
+        final ArrayList allData[] = {totalCases, deaths, recovered, active};
         final String seriesName[] = {"total Cases", "Total Deaths", "Total Recovered", "Total Active"};
         try {
             final CategoryAxis xAxis = new CategoryAxis();
             final NumberAxis yAxis = new NumberAxis();
 
-            LineChart<String,Number> chart = new LineChart<String,Number>(xAxis,yAxis);
+            LineChart chart = new LineChart(xAxis,yAxis);
             String title = countryName + " Data - All";
-            if (CountryViewController.isLogChartSelected(logChart)) {
+            if (isLogChartSelected(logChart)) {
                 title += " (logarithmic chart view)";
             }
             chart.setTitle(title);
@@ -313,15 +310,17 @@ public class CountryViewController implements Initializable {
                     int max = Collections.max(temp);
                     optionsMaxValue.add(max);
                     double value = getBackLogValueIfSelected(temp.get(x), max, logChart);
-                    series.getData().add(new XYChart.Data(legends.get(x), isLogChartSelected(logChart) ? value : (int)value ));
+                    series.getData().add(new XYChart.Data(legends.get(x),value));
                 }
                 chart.getData().add(series);
             }
             chart.setLegendVisible(true);
             setupLineChart(chart, optionsMaxValue, logChart, mainPane, graphCont, graphPlace, mainScene);
         }catch (NullPointerException ex){
-            System.out.println(ex);
+            ex.printStackTrace();
             ShowError.error("No data available for graph!!!" ,"Couldn't load API data and there's no history data for detailed data on " + data.getCountryName());
+        }catch (RuntimeException ex) {
+            ex.printStackTrace();       
         }
     }
     
@@ -367,13 +366,6 @@ public class CountryViewController implements Initializable {
     public static void setupLineChart (LineChart<String,Number> chart, ArrayList<Integer> optionsMax,
                                 CheckBox logChart, AnchorPane mainPane, ScrollPane graphCont,
                                 AnchorPane graphPlace, Scene mainScene) {
-        System.out.println(chart); 
-        System.out.println(optionsMax);
-        System.out.println(logChart);
-        System.out.println(mainPane);
-        System.out.println(graphCont);
-        System.out.println(graphPlace);
-        System.out.println(mainScene);
         try {
             int counter = 0;
             for (Series<String,Number> serie: chart.getData()){
@@ -400,41 +392,41 @@ public class CountryViewController implements Initializable {
                                             max, logChart);
                         date.setStyle("-fx-font: 18 arial;");
                         caption.setText(Integer.toString(value));
-                        String dateValue = item.getXValue();
-                        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-                        Date convertedDate = new Date();
                         try {
+                            String dateValue = item.getXValue();
+                            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                            Date convertedDate = new Date();
                             convertedDate = dateFormat.parse(dateValue);
                             SimpleDateFormat changedFormaat = new SimpleDateFormat("dd-MMM-yyyy");
                             String changedValue = changedFormaat.format(convertedDate);
                             date.setText(changedValue);
+                            container.getChildren().addAll(caption, date);
+                            mainPane.getChildren().add(container);
                         } catch (ParseException exc) {
                             exc.printStackTrace();
+                        }catch (Exception ex) {
+                            ex.printStackTrace();
                         }
-                        container.getChildren().addAll(caption, date);
-                        mainPane.getChildren().add(container);
+                        
                     });
                     item.getNode().addEventHandler(MouseEvent.MOUSE_RELEASED, (MouseEvent e) -> {
-                        container.getChildren().removeAll(caption, date);
-                        mainPane.getChildren().remove(container);
+                        try{
+                            container.getChildren().removeAll(caption, date);
+                            mainPane.getChildren().remove(container);
+                        }catch (Exception ex){
+                            ex.printStackTrace();
+                        }
                     });
                 }
-                counter++;
             }
 
             chart.setMinWidth(1400);
             graphCont.setMinViewportWidth(1400);
+            graphPlace.getChildren().clear();
             graphPlace.getChildren().add(chart);
             chart.setLegendVisible(true);
-            changeCursorToNormal(mainScene);
-            System.out.println("finish drawing");
-        }catch (RuntimeException ex) {
+        }catch (Exception ex) {
             ex.printStackTrace();
         }
-    }
-        
-    public static void changeCursorToNormal (Scene mainScene) {
-        System.out.println("Changed cursor");
-        mainScene.setCursor(Cursor.DEFAULT);
     }
 }

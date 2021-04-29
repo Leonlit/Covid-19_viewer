@@ -112,6 +112,8 @@ public class MainPageController implements Initializable {
                         cont.show();
                     } catch (IOException ex) {
                         Logger.getLogger(MainPageController.class.getName()).log(Level.SEVERE, null, ex);
+                    }catch (Exception ex) {
+                        ex.printStackTrace();
                     }
                 }
             });
@@ -207,6 +209,9 @@ public class MainPageController implements Initializable {
     }
     
     public static void drawPieGraph (int data[], String legends[], Pane chartLocation, AnchorPane mainPane) {
+        if ((data[0] + data[1] + data[2]) == 0) {
+            return;
+        }
         ObservableList dataList = FXCollections.observableArrayList();
         int total = IntStream.of(data).sum();
         for (int x = 0; x< data.length;x++) {
