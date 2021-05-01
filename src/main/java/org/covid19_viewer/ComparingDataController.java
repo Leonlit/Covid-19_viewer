@@ -19,6 +19,7 @@ import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.Cursor;
 import javafx.scene.Scene;
 import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.LineChart;
@@ -129,6 +130,7 @@ public class ComparingDataController implements Initializable {
     @FXML
     private void drawAll () {
         if (dataCont.size() != 0) {
+            changeCursorToLoading(mainScene);
             casesT.setSelected(true);
             recoveredT.setSelected(true);
             deathsT.setSelected(true);
@@ -140,6 +142,7 @@ public class ComparingDataController implements Initializable {
     @FXML
     private void constructGraph () {
         if (dataCont.size() != 0) {
+            changeCursorToLoading(mainScene);
             if (!graphPlace.getChildren().isEmpty()) {
                 graphPlace.getChildren().clear();
             }
@@ -280,7 +283,7 @@ public class ComparingDataController implements Initializable {
             for (int country = 0; country < countries.size();country++) {
                 String countrySlug = countries.get(country).getSlug();
                 String countryName = countries.get(country).getCountryName();
-                Worker worker = new Worker (countrySlug, countryName);
+                Worker worker = new Worker (countrySlug, countryName, this.mainScene);
                 String result = worker.getResult();
                 if (result == null) {
                     Platform.runLater(() -> {
@@ -522,15 +525,21 @@ public class ComparingDataController implements Initializable {
            }
         };
     }
+        
+    public void changeCursorToLoading (Scene mainScene) {
+        mainScene.setCursor(Cursor.WAIT);
+    }
 }
 
 class Worker {
     private String countrySlug, countryName;
     private String result;
+    private Scene UI_Scene;
     
-    public Worker (String countrySlug, String countryName){
+    public Worker (String countrySlug, String countryName, Scene theScene){
         this.countryName = countryName;
         this.countrySlug = countrySlug;
+        this.UI_Scene = theScene;
         runRequest(0);
     }
     

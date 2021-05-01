@@ -18,6 +18,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.Cursor;
 import javafx.scene.Scene;
 import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.LineChart;
@@ -121,7 +122,7 @@ public class CountryViewController implements Initializable {
                 int seriesSize = options.get(line).size();
                 for (int x = getDataConstrainer(options.get(line), constraints); x < seriesSize;x++) {
                     double value = getBackLogValueIfSelected(options.get(line).get(x), max, logChart);
-                    data.getData().add(new XYChart.Data(dates.get(x), value ));
+                    data.getData().add(new XYChart.Data(dates.get(x), isLogChartSelected(logChart) ? value : (int)value ));
                 }
                 chart.getData().add(data);
             }
@@ -310,7 +311,7 @@ public class CountryViewController implements Initializable {
                     int max = Collections.max(temp);
                     optionsMaxValue.add(max);
                     double value = getBackLogValueIfSelected(temp.get(x), max, logChart);
-                    series.getData().add(new XYChart.Data(legends.get(x),value));
+                    series.getData().add(new XYChart.Data(legends.get(x), isLogChartSelected(logChart) ? value : (int)value ));
                 }
                 chart.getData().add(series);
             }
@@ -419,7 +420,7 @@ public class CountryViewController implements Initializable {
                     });
                 }
             }
-
+            changeCursorToNormal(mainScene);
             chart.setMinWidth(1400);
             graphCont.setMinViewportWidth(1400);
             graphPlace.getChildren().clear();
@@ -428,5 +429,9 @@ public class CountryViewController implements Initializable {
         }catch (Exception ex) {
             ex.printStackTrace();
         }
+    }
+    
+    public static void changeCursorToNormal (Scene mainScene) {
+        mainScene.setCursor(Cursor.DEFAULT);
     }
 }
