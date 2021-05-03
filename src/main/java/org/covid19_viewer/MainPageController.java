@@ -14,9 +14,11 @@ import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
@@ -38,10 +40,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-/**
- *
- * @author User
- */
 public class MainPageController implements Initializable {
     
     private int timeOut = 0;
@@ -94,28 +92,28 @@ public class MainPageController implements Initializable {
         countryData.setRowFactory(tv -> {
             TableRow<CountryData> row = new TableRow<>();
             row.setOnMouseClicked(event -> {
-                if (event.getClickCount() == 2 && (! row.isEmpty()) ) {
-                    CountryData rowData = row.getItem();
-                    try {
-                        Stage cont = new Stage();
-                        FXMLLoader loader = new FXMLLoader(getClass().getResource("CountryView.fxml"));
-                        Parent root = loader.load();
-
-                        CountryViewController controller = loader.getController();
-                        Scene countryView = new Scene(root);
-                        controller.setupData(rowData, countryView);
-                        URL cssFile = getClass().getResource("index.css");
-                        String css = cssFile.toExternalForm(); 
-                        countryView.getStylesheets().add(css);
-                        cont.setScene(countryView);
-                        cont.setTitle("Covid-19 Viewer - Data for " + rowData.getCountryName());
-                        cont.show();
-                    } catch (IOException ex) {
-                        Logger.getLogger(MainPageController.class.getName()).log(Level.SEVERE, null, ex);
-                    }catch (Exception ex) {
-                        ex.printStackTrace();
+                    if (event.getClickCount() == 2 && (! row.isEmpty()) ) {
+                        CountryData rowData = row.getItem();
+                        try {
+                            Stage cont = new Stage();
+                            FXMLLoader loader = new FXMLLoader(getClass().getResource("CountryView.fxml"));
+                            Parent root = loader.load();
+                            CountryViewController controller = loader.getController();
+                            Scene countryView = new Scene(root);
+                            Helper.changeCursorToLoading(countryView);
+                            controller.setupData(rowData, countryView);
+                            URL cssFile = getClass().getResource("index.css");
+                            String css = cssFile.toExternalForm(); 
+                            countryView.getStylesheets().add(css);
+                            cont.setScene(countryView);
+                            cont.setTitle("Covid-19 Viewer - Data for " + rowData.getCountryName());
+                            cont.show();
+                        } catch (IOException ex) {
+                            Logger.getLogger(MainPageController.class.getName()).log(Level.SEVERE, null, ex);
+                        }catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
                     }
-                }
             });
             return row ;
         });

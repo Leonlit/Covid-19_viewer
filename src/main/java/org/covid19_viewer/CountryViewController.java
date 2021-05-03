@@ -14,8 +14,10 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.ResourceBundle;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Cursor;
@@ -109,7 +111,7 @@ public class CountryViewController implements Initializable {
             }
             title = title.substring(0, title.length() - 2);
             title = data.getCountryName() + " Data - " + title;
-            if (isLogChartSelected(logChart)) {
+            if (Helper.isLogChartSelected(logChart)) {
                 title += " (Logarithmic chart view)";
             }
             chart.setTitle(title);
@@ -120,9 +122,9 @@ public class CountryViewController implements Initializable {
                 int max = Collections.max(options.get(line));
                 optionsMaxValue.add(max);
                 int seriesSize = options.get(line).size();
-                for (int x = getDataConstrainer(options.get(line), constraints); x < seriesSize;x++) {
-                    double value = getBackLogValueIfSelected(options.get(line).get(x), max, logChart);
-                    data.getData().add(new XYChart.Data(dates.get(x), isLogChartSelected(logChart) ? value : (int)value ));
+                for (int x = Helper.getDataConstrainer(options.get(line), constraints); x < seriesSize;x++) {
+                    double value = Helper.getBackLogValueIfSelected(options.get(line).get(x), max, logChart);
+                    data.getData().add(new XYChart.Data(dates.get(x), Helper.isLogChartSelected(logChart) ? value : (int)value ));
                 }
                 chart.getData().add(data);
             }
@@ -145,9 +147,15 @@ public class CountryViewController implements Initializable {
     public void setupData (CountryData data, Scene mainScene) {
         this.data = data;
         this.mainScene = mainScene;
-        setupValues();
-        setupCountryGraph();
-        showDetailedData(0);
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                setupValues();
+                setupCountryGraph();
+                showDetailedData(0);
+                Helper.changeCursorToNormal(mainScene);  
+            }
+        });
     }
     
     private void setupValues () {
@@ -298,7 +306,7 @@ public class CountryViewController implements Initializable {
 
             LineChart chart = new LineChart(xAxis,yAxis);
             String title = countryName + " Data - All";
-            if (isLogChartSelected(logChart)) {
+            if (Helper.isLogChartSelected(logChart)) {
                 title += " (logarithmic chart view)";
             }
             chart.setTitle(title);
@@ -306,12 +314,12 @@ public class CountryViewController implements Initializable {
             for (int index=0;index < seriesName.length;index++) {
                 Series series = new Series();
                 series.setName(seriesName[index]);
-                for (int x = getDataConstrainer(allData[index], constraints); x < allData[index].size();x++) {
+                for (int x = Helper.getDataConstrainer(allData[index], constraints); x < allData[index].size();x++) {
                     ArrayList<Integer> temp = allData[index];
                     int max = Collections.max(temp);
                     optionsMaxValue.add(max);
-                    double value = getBackLogValueIfSelected(temp.get(x), max, logChart);
-                    series.getData().add(new XYChart.Data(legends.get(x), isLogChartSelected(logChart) ? value : (int)value ));
+                    double value = Helper.getBackLogValueIfSelected(temp.get(x), max, logChart);
+                    series.getData().add(new XYChart.Data(legends.get(x), Helper.isLogChartSelected(logChart) ? value : (int)value ));
                 }
                 chart.getData().add(series);
             }
@@ -325,44 +333,7 @@ public class CountryViewController implements Initializable {
         }
     }
     
-    public static int getDataConstrainer (ArrayList list, int constraints) {
-        if (constraints == 0) return 0;
-        int seriesSize = list.size();
-        int value = constraints > seriesSize ? 0 : seriesSize - constraints;
-        return value;
-    }
     
-    public static double getBackLogValueIfSelected (int value, int max, CheckBox box) {
-        if (isLogChartSelected(box) && value == 0) {
-            return 0;
-        }else if (isLogChartSelected(box)){
-            return logOfBase(max, value);
-        }
-        return value;
-    }
-    
-    public static int getBackValueFromLog (double value, int max, CheckBox box) {
-        if (isLogChartSelected(box)){
-            return getBackFromBase(max, value);
-        }
-        return (int)value;
-    }
-    
-    public static double logOfBase(int base, double num) {
-        double value = Math.log(num) / Math.log(base);
-        if (Double.isInfinite(value)) {
-            return 0;
-        }
-        return value;
-    }
-    
-    public static int getBackFromBase(int base, double num) {
-        return (int)Math.exp(num * Math.log(base));
-    }
-    
-    public static boolean isLogChartSelected(CheckBox box) {
-        return box.isSelected();
-    }
     
     public static void setupLineChart (LineChart<String,Number> chart, ArrayList<Integer> optionsMax,
                                 CheckBox logChart, AnchorPane mainPane, ScrollPane graphCont,
@@ -384,7 +355,7 @@ public class CountryViewController implements Initializable {
                                         "-fx-background-color: rgba(255, 255, 255, 0.5);");
                         container.setTranslateX(e.getSceneX() - 50);
                         container.setTranslateY(e.getSceneY() - 20);
-                        final int value = getBackValueFromLog(
+                        final int value = Helper.getBackValueFromLog(
                                                 Double.parseDouble(
                                                     String.valueOf(
                                                             item.getYValue()
@@ -420,7 +391,7 @@ public class CountryViewController implements Initializable {
                     });
                 }
             }
-            changeCursorToNormal(mainScene);
+            Helper.changeCursorToNormal(mainScene);
             chart.setMinWidth(1400);
             graphCont.setMinViewportWidth(1400);
             graphPlace.getChildren().clear();
@@ -431,7 +402,5 @@ public class CountryViewController implements Initializable {
         }
     }
     
-    public static void changeCursorToNormal (Scene mainScene) {
-        mainScene.setCursor(Cursor.DEFAULT);
-    }
+    
 }

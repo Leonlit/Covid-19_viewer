@@ -34,7 +34,6 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.AnchorPane;
 import javafx.util.StringConverter;
-import static org.covid19_viewer.CountryViewController.getDataConstrainer;
 import org.json.JSONArray;
 import org.json.JSONException;
 
@@ -130,7 +129,7 @@ public class ComparingDataController implements Initializable {
     @FXML
     private void drawAll () {
         if (dataCont.size() != 0) {
-            changeCursorToLoading(mainScene);
+            Helper.changeCursorToLoading(mainScene);
             casesT.setSelected(true);
             recoveredT.setSelected(true);
             deathsT.setSelected(true);
@@ -142,7 +141,7 @@ public class ComparingDataController implements Initializable {
     @FXML
     private void constructGraph () {
         if (dataCont.size() != 0) {
-            changeCursorToLoading(mainScene);
+            Helper.changeCursorToLoading(mainScene);
             if (!graphPlace.getChildren().isEmpty()) {
                 graphPlace.getChildren().clear();
             }
@@ -224,7 +223,7 @@ public class ComparingDataController implements Initializable {
                             }
 
                             title = title.substring(0, title.length() - 2);
-                            if (CountryViewController.isLogChartSelected(logChart)) {
+                            if (Helper.isLogChartSelected(logChart)) {
                                 title += " (logarithmic chart view)";
                             }
 
@@ -237,10 +236,10 @@ public class ComparingDataController implements Initializable {
                                     XYChart.Series data = new XYChart.Series();
                                     data.setName(parsedData.get(country).getCountryName() + "." + legends[Integer.parseInt(checks[line])]);
                                     ArrayList<Integer> currItem = options.get(line + (country * checks.length));
-                                    for (int x = getDataConstrainer(currItem, constraints); x < currItem.size();x++) {
-                                        double value = CountryViewController.getBackLogValueIfSelected(options.get(line + (country * checks.length)).get(x), max, logChart);
+                                    for (int x = Helper.getDataConstrainer(currItem, constraints); x < currItem.size();x++) {
+                                        double value = Helper.getBackLogValueIfSelected(options.get(line + (country * checks.length)).get(x), max, logChart);
                                         String date = parsedData.get(country).getAllDates().get(x);
-                                        data.getData().add(new XYChart.Data(date, CountryViewController.isLogChartSelected(logChart) ? value : (int)value ));
+                                        data.getData().add(new XYChart.Data(date, Helper.isLogChartSelected(logChart) ? value : (int)value ));
                                     }
                                     chart.getData().add(data);
                                 }
@@ -286,9 +285,7 @@ public class ComparingDataController implements Initializable {
                 Worker worker = new Worker (countrySlug, countryName, this.mainScene);
                 String result = worker.getResult();
                 if (result == null) {
-                    Platform.runLater(() -> {
-                        ShowError.error("Error, No data available!!!", "Couldn't load API data and there's no history data for " + countryName);
-                    });
+                    ShowError.error("Error, No data available!!!", "Couldn't load API data and there's no history data for " + countryName);
                     countries.remove(country);
                     country--;
                 }else {
@@ -524,10 +521,6 @@ public class ComparingDataController implements Initializable {
                return name.compareTo(name2); 
            }
         };
-    }
-        
-    public void changeCursorToLoading (Scene mainScene) {
-        mainScene.setCursor(Cursor.WAIT);
     }
 }
 
