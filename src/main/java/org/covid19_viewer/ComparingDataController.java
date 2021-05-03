@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.ResourceBundle;
-import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -19,7 +18,6 @@ import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.Cursor;
 import javafx.scene.Scene;
 import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.LineChart;
@@ -248,13 +246,14 @@ public class ComparingDataController implements Initializable {
                             CountryViewController.setupLineChart(chart, optionsMaxValue, logChart, 
                                                         mainPane, graphCont, graphPlace, mainScene);
                         }catch (RuntimeException ex) {
+                            AppLogger.logging(ex.getMessage(), 3);
                             ex.printStackTrace();
                         }
                     });
                     new Thread(task).start();
                 }
             }catch (RuntimeException ex) {
-                ex.printStackTrace();
+                AppLogger.logging(ex.getMessage(), 3);
             }
         }
     }
@@ -293,6 +292,7 @@ public class ComparingDataController implements Initializable {
                 }
             }
         }catch (Exception ex) {
+            AppLogger.logging(ex.getMessage(), 3);
             ex.printStackTrace();
         }
         
@@ -326,9 +326,11 @@ public class ComparingDataController implements Initializable {
                 String slug = countries.get(x).getSlug();
                 parsed.add(new CompareData(country, slug, allCases, allDeaths, allRecovered, allActive, dates));
             }catch (JSONException ex) {
+                AppLogger.logging("File Integrity changed, skipping " + country, 2);
                 System.out.println("File Integrity changed, skipping " + country);
             }catch (RuntimeException ex) {
                 ex.printStackTrace();
+                AppLogger.logging("Error, No data available!!! Couldn't load API data and there's no history data for " + countries.get(x).getSlug(), 2);
                 ShowError.error("Error, No data available!!!", "Couldn't load API data and there's no history data for " + countries.get(x).getSlug());
             }
         }
@@ -391,8 +393,10 @@ public class ComparingDataController implements Initializable {
             }
         } catch (MalformedURLException ex) {
             //remember to change to custom error handling
+            AppLogger.logging("Access point to the API has been changed. Searching for data history in repository", 2);
             System.out.println("Access point to the API has been changed. Searching for data history in repository");
         } catch (IOException | RuntimeException ex) {
+            AppLogger.logging("Unable to connect with the API's server, searching for history data in directory", 2);
             System.out.println("Unable to connect with the API's server, searching for history data in directory");
             ex.printStackTrace();
             result = FileManagement.getFromFile("countries", 1);
@@ -400,7 +404,8 @@ public class ComparingDataController implements Initializable {
             if (!(result.equals("") || result == "")) {
                 setupDropdown(result);
             }else {
-                //pop up error
+                AppLogger.logging("Unable to get countries name", 3);
+                ShowError.error("Unable to connect with the API's server", "Unable to get countries name");
             }
         }
     }

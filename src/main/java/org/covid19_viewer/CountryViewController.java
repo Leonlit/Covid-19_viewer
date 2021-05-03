@@ -17,10 +17,8 @@ import java.util.ResourceBundle;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.Cursor;
 import javafx.scene.Scene;
 import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.LineChart;
@@ -44,7 +42,7 @@ public class CountryViewController implements Initializable {
     private ArrayList<Integer> allCases, allDeaths, allRecovered, allActive;
     private ArrayList<String> dates;
     private ArrayList<Integer> optionsMaxValue = new ArrayList<Integer>();
-    private int constraints = 0, maximum;
+    private int constraints = 0;
     final int contraintsArr[] = {30, 90, 180, 365};
     private Scene mainScene;
     
@@ -222,22 +220,27 @@ public class CountryViewController implements Initializable {
                     FileManagement.saveIntoFile(result, data.getSlug());
                 }
             }else {
+                AppLogger.logging("Using Country " + data.getSlug() + " History Data", 1);
                 System.out.println("Using Country " + data.getSlug() + " History Data");
             }
         } catch (MalformedURLException ex) {
             //remember to change to custom error handling
+            AppLogger.logging("Access point to the API has been changed. Searching for data history in repository", 1);
             System.out.println("Access point to the API has been changed. Searching for data history in repository");
         } catch (IOException ex) {
+            AppLogger.logging("Unable to connect with the API's server", 3);
             System.out.println("Unable to connect with the API's server");
             result = FileManagement.getFromFile(data.getSlug(), 1);
             forced = 1;
         } finally {
             if (!(result.equals("") || result == "")) {
                 if (forced == 1) {
+                    AppLogger.logging("Unable to connect with the API's server, using history data", 3);
                     ShowError.error("Unable to fetch new data from API server!!!", "Error: Unable to fetch new data from server, currently using old data for " + data.getSlug());
                 }
                 setupDetailedGraph(result);
             }else {
+                AppLogger.logging("Couldn't load API data and there's no history data for " + data.getSlug(), 3);
                 ShowError.error("No data available!!!" ,"Couldn't load API data and there's no history data for " + data.getSlug());
             }
         }
@@ -283,9 +286,11 @@ public class CountryViewController implements Initializable {
             
             drawInitialLineChart(allCases, allDeaths, allRecovered, allActive, dates, country);            
         }catch (JSONException ex) {
+            AppLogger.logging("File Integrity changed, requesting new data from server", 1);
             System.out.println("File Integrity changed, requesting new data from server");
             showDetailedData(1);
         }catch (RuntimeException ex) {
+            AppLogger.logging(ex.getMessage(), 1);
             ex.printStackTrace();
         }
     }
@@ -326,9 +331,11 @@ public class CountryViewController implements Initializable {
             chart.setLegendVisible(true);
             setupLineChart(chart, optionsMaxValue, logChart, mainPane, graphCont, graphPlace, mainScene);
         }catch (NullPointerException ex){
+            AppLogger.logging("Couldn't load API data and there's no history data for detailed data on " + data.getCountryName(), 3);
             ex.printStackTrace();
             ShowError.error("No data available for graph!!!" ,"Couldn't load API data and there's no history data for detailed data on " + data.getCountryName());
         }catch (RuntimeException ex) {
+            AppLogger.logging(ex.getMessage(), 3);
             ex.printStackTrace();       
         }
     }
@@ -374,9 +381,11 @@ public class CountryViewController implements Initializable {
                             date.setText(changedValue);
                             container.getChildren().addAll(caption, date);
                             mainPane.getChildren().add(container);
-                        } catch (ParseException exc) {
-                            exc.printStackTrace();
+                        } catch (ParseException ex) {
+                            AppLogger.logging(ex.getMessage(), 3);
+                            ex.printStackTrace();
                         }catch (Exception ex) {
+                            AppLogger.logging(ex.getMessage(), 3);
                             ex.printStackTrace();
                         }
                         
@@ -386,6 +395,7 @@ public class CountryViewController implements Initializable {
                             container.getChildren().removeAll(caption, date);
                             mainPane.getChildren().remove(container);
                         }catch (Exception ex){
+                            AppLogger.logging(ex.getMessage(), 3);
                             ex.printStackTrace();
                         }
                     });
@@ -398,6 +408,7 @@ public class CountryViewController implements Initializable {
             graphPlace.getChildren().add(chart);
             chart.setLegendVisible(true);
         }catch (Exception ex) {
+            AppLogger.logging(ex.getMessage(), 3);
             ex.printStackTrace();
         }
     }

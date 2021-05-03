@@ -11,14 +11,10 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.ResourceBundle;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.IntStream;
-import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
-import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
@@ -109,9 +105,9 @@ public class MainPageController implements Initializable {
                             cont.setTitle("Covid-19 Viewer - Data for " + rowData.getCountryName());
                             cont.show();
                         } catch (IOException ex) {
-                            Logger.getLogger(MainPageController.class.getName()).log(Level.SEVERE, null, ex);
+                            AppLogger.logging(ex.getMessage(), 3);
                         }catch (Exception ex) {
-                            ex.printStackTrace();
+                            AppLogger.logging(ex.getMessage(), 3);
                         }
                     }
             });
@@ -124,6 +120,7 @@ public class MainPageController implements Initializable {
     }
     
     private void getGlobalData (int forced) {
+        System.out.println(getClass().getClassLoader().getResource("logging.properties"));
         String result = result = FileManagement.getFromFile("global");
         final String url = "https://api.covid19api.com/summary";
         try {
@@ -138,7 +135,7 @@ public class MainPageController implements Initializable {
 
                 int responseCode = conn.getResponseCode(); //200 means ok
                 if (responseCode != 200) {
-                    throw new RuntimeException("HttpResponseCode: " + responseCode);
+                    AppLogger.logging("HttpResponseCode: " + responseCode, 2);
                 }else {
                     BufferedReader r  = new BufferedReader(new InputStreamReader(conn.getInputStream(), Charset.forName("UTF-8")));
 
@@ -152,22 +149,24 @@ public class MainPageController implements Initializable {
                     FileManagement.saveIntoFile(result, "global");
                 }
             }else {
-                System.out.println("Using History Data for global stats");
+                AppLogger.logging("Using History Data for global stats", 1);
             }
         } catch (MalformedURLException ex) {
             //remember to change to custom error handling
-            System.out.println("Access point to the API has been changed. Searching for data history in repository");
+            AppLogger.logging("Access point to the API has been changed. Searching for data history in repository", 3);
         } catch (IOException | RuntimeException ex) {
-            System.out.println("Unable to connect with the API's server, searching for history data in directory");
+            AppLogger.logging("Unable to connect with the API's server, searching for history data in directory", 1);
             result = FileManagement.getFromFile("global", 1);
             
         }finally {
             if (!(result.equals("") || result == "")) {
                 if (forced == 1) {
+                    AppLogger.logging("Unable to fetch new data from API server!!! Error: Unable to fetch new data from server, currently using old data for global stats", 1);
                     ShowError.error("Unable to fetch new data from API server!!!", "Error: Unable to fetch new data from server, currently using old data for global stats");
                 }
                 setupMainPage(result);
             }else {
+                AppLogger.logging("No data available!!! Couldn't load API data and there's no history data for global stats", 2);
                 ShowError.error("No data available!!!" ,"Couldn't load API data and there's no history data for global stats");
             }
         }
@@ -201,6 +200,7 @@ public class MainPageController implements Initializable {
             updateGlobalCounter(globalStats);
             timeOut = 0;
         }catch (JSONException ex) {
+            AppLogger.logging("File Integrity changed, requesting new data from server", 1);
             System.out.println("File Integrity changed, requesting new data from server");
             getGlobalData(1);
         }
@@ -285,6 +285,7 @@ public class MainPageController implements Initializable {
                             activeCases, totalCases, totalDeaths, totalRecovered, date));
             }
         }catch (JSONException ex) {
+            AppLogger.logging("Unable to connect with the API's server, searching for history data in directory", 1);
             System.out.println("Unable to connect with the API's server, searching for history data in directory");
             getGlobalData(1);
         }finally {

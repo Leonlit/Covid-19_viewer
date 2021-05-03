@@ -5,10 +5,6 @@ import javafx.scene.Cursor;
 import javafx.scene.Scene;
 import javafx.scene.control.CheckBox;
 
-/**
- *
- * @author User
- */
 public class Helper {
     public static void changeCursorToNormal (Scene mainScene) {
         mainScene.setCursor(Cursor.DEFAULT);

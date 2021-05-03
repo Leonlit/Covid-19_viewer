@@ -33,7 +33,7 @@ public class FileManagement {
             channel.close();
             System.out.println("Saving data into files in the historyData directory");
         }catch (IOException ex) {
-            //error when storing content to file, quite impossible
+            AppLogger.logging(ex.getMessage(), 3);
         }
     }
     
@@ -51,6 +51,7 @@ public class FileManagement {
                 System.out.println("Try getting History Data");
             }
         }catch (IOException ex) {
+            AppLogger.logging(ex.getMessage(), 3);
             System.out.println("Error when getting data from file");
         }
         return data;
@@ -67,6 +68,7 @@ public class FileManagement {
             input.close();
             System.out.println("Forcefully Getting History Data");
         }catch (IOException ex) {
+            AppLogger.logging(ex.getMessage(), 3);
             System.out.println("Error when getting data from file");
             System.out.println("The history file does not exist");
         }
@@ -81,7 +83,7 @@ public class FileManagement {
                 dirName.mkdir();
             }
         } catch (IOException ex) {
-            Logger.getLogger(FileManagement.class.getName()).log(Level.SEVERE, null, ex);
+            AppLogger.logging(ex.getMessage(), 3);
         }
     }
 }
