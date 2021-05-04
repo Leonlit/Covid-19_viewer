@@ -180,77 +180,66 @@ public class ComparingDataController implements Initializable {
                         countryList.add(dataCont.get(2));
                     }
 
-                    Task<ArrayList<CompareData>> task = new Task<ArrayList<CompareData>>() {
-                        @Override
-                        public ArrayList<CompareData> call() {
-                            return getCountriesData(countryList);
-                        }
-                    };
-                    
-                    task.setOnSucceeded(e -> {
-                        ArrayList<CompareData> parsedData = new ArrayList<CompareData>();
-                        parsedData = task.getValue();
-                        ArrayList<ArrayList<Integer>> options = new ArrayList<ArrayList<Integer>>();
-                        try {
-                            for (int country = 0; country < parsedData.size();country++) {
-                                for (int x = 0 ; x< option.length;x++) {
-                                   switch (option[x]) {
-                                        case 0:
-                                            options.add(parsedData.get(country).getAllCases());
-                                            break;
-                                        case 1:
-                                            options.add(parsedData.get(country).getAllDeaths());
-                                            break;
-                                        case 2:
-                                            options.add(parsedData.get(country).getAllRecovered());
-                                            break;
-                                        case 3:
-                                            options.add(parsedData.get(country).getAllActive());
-                                            break;
-                                    }
+                    ArrayList<CompareData> parsedData = getCountriesData(countryList);
+                    ArrayList<ArrayList<Integer>> options = new ArrayList<ArrayList<Integer>>();
+                    try {
+                        for (int country = 0; country < parsedData.size();country++) {
+                            for (int x = 0 ; x< option.length;x++) {
+                               switch (option[x]) {
+                                    case 0:
+                                        options.add(parsedData.get(country).getAllCases());
+                                        break;
+                                    case 1:
+                                        options.add(parsedData.get(country).getAllDeaths());
+                                        break;
+                                    case 2:
+                                        options.add(parsedData.get(country).getAllRecovered());
+                                        break;
+                                    case 3:
+                                        options.add(parsedData.get(country).getAllActive());
+                                        break;
                                 }
                             }
-
-                            final CategoryAxis xAxis = new CategoryAxis();
-                            final NumberAxis yAxis = new NumberAxis();
-
-                            LineChart<String,Number> chart = new LineChart<String,Number>(xAxis,yAxis);
-                            String title = "";
-                            for (int x = 0;x< countryList.size();x++) {
-                                title += countryList.get(x).getCountryName() + ", ";
-                            }
-
-                            title = title.substring(0, title.length() - 2);
-                            if (Helper.isLogChartSelected(logChart)) {
-                                title += " (logarithmic chart view)";
-                            }
-
-                            chart.setTitle("Comparing Data - " + title);
-                            
-                            for (int country = 0; country < parsedData.size();country++) {
-                                for (int line=0;line<checks.length;line++) {
-                                    int max = Collections.max(options.get(line + (country * checks.length)));
-                                    optionsMaxValue.add(max);
-                                    XYChart.Series data = new XYChart.Series();
-                                    data.setName(parsedData.get(country).getCountryName() + "." + legends[Integer.parseInt(checks[line])]);
-                                    ArrayList<Integer> currItem = options.get(line + (country * checks.length));
-                                    for (int x = Helper.getDataConstrainer(currItem, constraints); x < currItem.size();x++) {
-                                        double value = Helper.getBackLogValueIfSelected(options.get(line + (country * checks.length)).get(x), max, logChart);
-                                        String date = parsedData.get(country).getAllDates().get(x);
-                                        data.getData().add(new XYChart.Data(date, Helper.isLogChartSelected(logChart) ? value : (int)value ));
-                                    }
-                                    chart.getData().add(data);
-                                }
-                            }
-                            
-                            CountryViewController.setupLineChart(chart, optionsMaxValue, logChart, 
-                                                        mainPane, graphCont, graphPlace, mainScene);
-                        }catch (RuntimeException ex) {
-                            AppLogger.logging(ex.getMessage(), 3);
-                            ex.printStackTrace();
                         }
-                    });
-                    new Thread(task).start();
+
+                        final CategoryAxis xAxis = new CategoryAxis();
+                        final NumberAxis yAxis = new NumberAxis();
+
+                        LineChart<String,Number> chart = new LineChart<String,Number>(xAxis,yAxis);
+                        String title = "";
+                        for (int x = 0;x< countryList.size();x++) {
+                            title += countryList.get(x).getCountryName() + ", ";
+                        }
+
+                        title = title.substring(0, title.length() - 2);
+                        if (Helper.isLogChartSelected(logChart)) {
+                            title += " (logarithmic chart view)";
+                        }
+
+                        chart.setTitle("Comparing Data - " + title);
+
+                        for (int country = 0; country < parsedData.size();country++) {
+                            for (int line=0;line<checks.length;line++) {
+                                int max = Collections.max(options.get(line + (country * checks.length)));
+                                optionsMaxValue.add(max);
+                                XYChart.Series data = new XYChart.Series();
+                                data.setName(parsedData.get(country).getCountryName() + "." + legends[Integer.parseInt(checks[line])]);
+                                ArrayList<Integer> currItem = options.get(line + (country * checks.length));
+                                for (int x = Helper.getDataConstrainer(currItem, constraints); x < currItem.size();x++) {
+                                    double value = Helper.getBackLogValueIfSelected(options.get(line + (country * checks.length)).get(x), max, logChart);
+                                    String date = parsedData.get(country).getAllDates().get(x);
+                                    data.getData().add(new XYChart.Data(date, Helper.isLogChartSelected(logChart) ? value : (int)value ));
+                                }
+                                chart.getData().add(data);
+                            }
+                        }
+
+                        CountryViewController.setupLineChart(chart, optionsMaxValue, logChart, 
+                                                    mainPane, graphCont, graphPlace, mainScene);
+                    }catch (RuntimeException ex) {
+                        AppLogger.logging(ex.getMessage(), 3);
+                        ex.printStackTrace();
+                    }
                 }
             }catch (RuntimeException ex) {
                 AppLogger.logging(ex.getMessage(), 3);
@@ -281,7 +270,11 @@ public class ComparingDataController implements Initializable {
             for (int country = 0; country < countries.size();country++) {
                 String countrySlug = countries.get(country).getSlug();
                 String countryName = countries.get(country).getCountryName();
+                
                 Worker worker = new Worker (countrySlug, countryName, this.mainScene);
+                Thread thread = new Thread(worker);
+                thread.start();
+                thread.join();
                 String result = worker.getResult();
                 if (result == null) {
                     ShowError.error("Error, No data available!!!", "Couldn't load API data and there's no history data for " + countryName);
@@ -529,16 +522,22 @@ public class ComparingDataController implements Initializable {
     }
 }
 
-class Worker {
+class Worker implements Runnable{
     private String countrySlug, countryName;
     private String result;
     private Scene UI_Scene;
+    
+    
+    @Override
+    public void run() {
+        runRequest(0);
+    }
     
     public Worker (String countrySlug, String countryName, Scene theScene){
         this.countryName = countryName;
         this.countrySlug = countrySlug;
         this.UI_Scene = theScene;
-        runRequest(0);
+
     }
     
     public String getResult () {
@@ -559,9 +558,7 @@ class Worker {
 
                 int responseCode = conn.getResponseCode(); //200 means ok
                 if (responseCode != 200) {
-                    //remember to make a new custom error window for this refer last project
-                    //implement various code response later
-
+                    ShowError.error(result, result);;
                     throw new RuntimeException("HttpResponseCode: " + responseCode);
                 }else {
                     System.out.println("Try getting " + countrySlug + " data from Server");
@@ -606,4 +603,5 @@ class Worker {
             }
         }
     }
+
 }

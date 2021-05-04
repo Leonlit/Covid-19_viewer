@@ -11,3 +11,5 @@ historyData/
 deploy/
 *.txt
 *.log
+/nbproject/
+*test*
