@@ -202,9 +202,7 @@ public class CountryViewController implements Initializable {
 
                 int responseCode = conn.getResponseCode(); //200 means ok
                 if (responseCode != 200) {
-                    //remember to make a new custom error window for this refer last project
-                    //implement various code response later
-
+                    AppLogger.logging("HttpResponseCode: " + responseCode, 2);
                     throw new RuntimeException("HttpResponseCode: " + responseCode);
                 }else {
                     System.out.println("Try getting " + data.getSlug() + " data from Server");
