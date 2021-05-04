@@ -3,18 +3,20 @@ package org.covid19_viewer;
 import java.io.IOException;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
+import java.util.logging.LogManager;
 import java.util.logging.Logger;
-import java.util.logging.SimpleFormatter;
+import java.util.logging.XMLFormatter;
 
 public class AppLogger {
     private final static Logger LOGGER = Logger.getLogger("AppLogger"); 
 
     public final static void logging(String msg, int type){
         try {
-            FileHandler fh; 
-            fh = new FileHandler(System.getProperty("user.dir") + "\\AppLogger.log");
+            LogManager.getLogManager().reset();
+            LOGGER.setLevel(Level.ALL);
+            FileHandler fh = new FileHandler("AppLogger.log");
             LOGGER.addHandler(fh);
-            SimpleFormatter formatter = new SimpleFormatter();  
+            XMLFormatter formatter = new XMLFormatter();  
             fh.setFormatter(formatter);
             switch (type) {
                 case 1:
