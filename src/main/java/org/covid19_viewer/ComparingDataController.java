@@ -378,7 +378,8 @@ public class ComparingDataController implements Initializable {
                     while ((line = r.readLine()) != null) {
                         sb.append(line);
                     }
-                    result = sb.toString(); 
+                    result = sb.toString();
+                    AppLogger.logging("Got API data from server for countries", 1);
                     FileManagement.saveIntoFile(result, "countries");
                 }
             }else {
@@ -573,7 +574,8 @@ class Worker implements Runnable{
                     result = sb.toString();
                     if (!(result.equals("[]") || result.equals(""))) {
                         System.out.println("used api data");
-                        FileManagement.saveIntoFile(result, countrySlug); 
+                        FileManagement.saveIntoFile(result, countrySlug);
+                        AppLogger.logging("Received API data from server for " + this.countrySlug, 1);
                     }
                 }
             }else {
@@ -584,6 +586,7 @@ class Worker implements Runnable{
             System.out.println("Access point to the API has been changed. Searching for data history in repository");
         }catch (IOException ex) {
             System.out.println("Unable to connect with the API's server");
+            AppLogger.logging("Unable to connect with the API's server for " + this.countrySlug, 2);
             result = FileManagement.getFromFile(countrySlug, 1);
             forced = true;
         }catch (RuntimeException ex) {
@@ -592,6 +595,7 @@ class Worker implements Runnable{
             if (!(result.equals("") || result == "" || result.equals("[]"))) {
                 if (forced) {
                     ShowError.error("Unable to fetch new data from API server!!!", "Error: Unable to fetch new data from server, currently using old data for " + countryName);
+                    AppLogger.logging("Unable to connect with the API's server for " + this.countryName, 2);
                 }
                 this.result = result;
                 System.out.println("Received data for " + countryName);
