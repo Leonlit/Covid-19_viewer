@@ -39,14 +39,14 @@ import org.json.JSONException;
 public class CountryViewController implements Initializable {
     
     private CountryData data;
-    private ArrayList<Integer> allCases, allDeaths, allRecovered, allActive;
+    private ArrayList<Integer> allCases, allNewCases, allDeaths, allRecovered, allActive;
     private ArrayList<String> dates;
     private ArrayList<Integer> optionsMaxValue = new ArrayList<Integer>();
     private int constraints = 0;
     final int contraintsArr[] = {30, 90, 180, 365};
     private Scene mainScene;
     
-    @FXML private CheckBox casesT, deathsT, recoveredT, activeT, logChart;
+    @FXML private CheckBox totalCasesT, deathsT, recoveredT, activeT, newCasesT, logChart;
     
     @FXML private Label newCase, newDeath, newRecovered, 
           totalCase, activeCase, totalDeath, totalRecovered, countryName, date;
@@ -61,19 +61,22 @@ public class CountryViewController implements Initializable {
         optionsMaxValue.clear();
         graphPlace.getChildren().clear();
         String checked = "";
-        String legends[] = {"Total Cases", "Total Deaths", "Total Recovered", "Total Active"};
+        String legends[] = {"Total Cases", "Total New Daily Cases", "Total Deaths", "Total Recovered", "Total Active"};
         
-        if (casesT.isSelected()) {
+        if (totalCasesT.isSelected()) {
             checked += "0";
         }
-        if (deathsT.isSelected()) {
+        if (newCasesT.isSelected()) {
             checked += "1";
         }
-        if (recoveredT.isSelected()) {
+        if (deathsT.isSelected()) {
             checked += "2";
         }
-        if(activeT.isSelected()) {
+        if (recoveredT.isSelected()) {
             checked += "3";
+        }
+        if(activeT.isSelected()) {
+            checked += "4";
         }
         if (checked.length() > 0) {
             String checks[] = checked.split("");
@@ -89,12 +92,15 @@ public class CountryViewController implements Initializable {
                         options.add(allCases);
                         break;
                     case 1:
-                        options.add(allDeaths);
+                        options.add(allNewCases);
                         break;
                     case 2:
-                        options.add(allRecovered);
+                        options.add(allDeaths);
                         break;
                     case 3:
+                        options.add(allRecovered);
+                        break;
+                    case 4:
                         options.add(allActive);
                         break;
                 }
@@ -134,7 +140,7 @@ public class CountryViewController implements Initializable {
     private void showAllBack () {
         checkAllSettings();
         graphPlace.getChildren().clear();
-        drawInitialLineChart(allCases, allDeaths, allRecovered, allActive, dates, data.getCountryName());
+        drawInitialLineChart(allCases, allNewCases, allDeaths, allRecovered, allActive, dates, data.getCountryName());
     }
     
     @Override
@@ -183,7 +189,8 @@ public class CountryViewController implements Initializable {
     }
     
     private void checkAllSettings () {
-        casesT.setSelected(true);
+        totalCasesT.setSelected(true);
+        newCasesT.setSelected(true);
         recoveredT.setSelected(true);
         deathsT.setSelected(true);
         activeT.setSelected(true);
@@ -267,6 +274,7 @@ public class CountryViewController implements Initializable {
     private void setupDetailedGraph (String result) {
         try {
             allCases = new ArrayList<Integer>();
+            allNewCases = new ArrayList<Integer>();
             allDeaths = new ArrayList<Integer>();
             allRecovered = new ArrayList<Integer>();
             allActive = new ArrayList<Integer>();
@@ -279,10 +287,17 @@ public class CountryViewController implements Initializable {
                 allRecovered.add(data.getJSONObject(x).getInt("Recovered"));
                 allActive.add(data.getJSONObject(x).getInt("Active"));
                 dates.add(data.getJSONObject(x).getString("Date").substring(0,10));
+                int newCases = 0;
+                if (x == 0) {
+                    newCases = allCases.get(x) - 0;
+                }else {
+                    newCases = allCases.get(x) - allCases.get(x - 1);
+                }
+                allNewCases.add(newCases);
             }
             String country = data.getJSONObject(0).getString("Country");
             
-            drawInitialLineChart(allCases, allDeaths, allRecovered, allActive, dates, country);            
+            drawInitialLineChart(allCases, allNewCases, allDeaths, allRecovered, allActive, dates, country);            
         }catch (JSONException ex) {
             AppLogger.logging("File Integrity changed, requesting new data from server", 1);
             System.out.println("File Integrity changed, requesting new data from server");
@@ -293,15 +308,15 @@ public class CountryViewController implements Initializable {
         }
     }
     
-    private void drawInitialLineChart (ArrayList<Integer> totalCases, ArrayList<Integer> deaths, ArrayList<Integer> recovered,
+    private void drawInitialLineChart (ArrayList<Integer> totalCases, ArrayList<Integer> totalNewCases, ArrayList<Integer> deaths, ArrayList<Integer> recovered,
                                         ArrayList<Integer> active, ArrayList<String> legends, String countryName) {
         checkAllSettings();
-        allCases = totalCases;
-        allDeaths = deaths;
-        allRecovered = recovered;
-        allActive = active;
+//        allCases = totalCases;
+//        allDeaths = deaths;
+//        allRecovered = recovered;
+//        allActive = active;
         
-        final ArrayList allData[] = {totalCases, deaths, recovered, active};
+        final ArrayList allData[] = {totalCases, totalNewCases, deaths, recovered, active};
         final String seriesName[] = {"total Cases", "Total Deaths", "Total Recovered", "Total Active"};
         try {
             final CategoryAxis xAxis = new CategoryAxis();
