@@ -45,6 +45,7 @@ public class CountryViewController implements Initializable {
     private int constraints = 0;
     final int contraintsArr[] = {30, 90, 180, 365};
     private Scene mainScene;
+    private static boolean isHovered = false;
     
     @FXML private CheckBox totalCasesT, deathsT, recoveredT, activeT, newCasesT, logChart;
     
@@ -366,7 +367,9 @@ public class CountryViewController implements Initializable {
                     final Label caption = new Label("");
                     final Label date = new Label("");
                     final VBox container = new VBox();
-                    item.getNode().addEventHandler(MouseEvent.MOUSE_PRESSED, (MouseEvent e) -> {
+                    item.getNode().addEventHandler(MouseEvent.MOUSE_ENTERED, (MouseEvent e) -> {
+                        if (isHovered)
+                            return;
                         caption.setTextFill(Color.BLACK);
                         container.setStyle("-fx-font: 22 arial;" + 
                                         "-fx-padding: 5px;" + 
@@ -374,7 +377,7 @@ public class CountryViewController implements Initializable {
                                         "-fx-background-radius: 5px;" +
                                         "-fx-background-color: rgba(255, 255, 255, 0.5);");
                         container.setTranslateX(e.getSceneX() - 50);
-                        container.setTranslateY(e.getSceneY() - 20);
+                        container.setTranslateY(e.getSceneY() - 60);
                         final int value = Helper.getBackValueFromLog(
                                                 Double.parseDouble(
                                                     String.valueOf(
@@ -394,6 +397,7 @@ public class CountryViewController implements Initializable {
                             date.setText(changedValue);
                             container.getChildren().addAll(caption, date);
                             mainPane.getChildren().add(container);
+                            isHovered = true;
                         } catch (ParseException ex) {
                             AppLogger.logging(ex.getMessage(), 3);
                             ex.printStackTrace();
@@ -403,10 +407,11 @@ public class CountryViewController implements Initializable {
                         }
                         
                     });
-                    item.getNode().addEventHandler(MouseEvent.MOUSE_RELEASED, (MouseEvent e) -> {
+                    item.getNode().addEventHandler(MouseEvent.MOUSE_EXITED, (MouseEvent e) -> {
                         try{
                             container.getChildren().removeAll(caption, date);
                             mainPane.getChildren().remove(container);
+                            isHovered = false;
                         }catch (Exception ex){
                             AppLogger.logging(ex.getMessage(), 3);
                             ex.printStackTrace();

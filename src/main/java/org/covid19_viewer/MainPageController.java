@@ -230,8 +230,8 @@ public class MainPageController implements Initializable {
                                 "-fx-border-radius: 5px;" + 
                                 "-fx-background-radius: 5px;" +
                                 "-fx-background-color: rgba(255, 255, 255, 0.5);");
-                caption.setTranslateX(e.getSceneX() - 50);
-                caption.setTranslateY(e.getSceneY() - 20);
+                caption.setTranslateX(e.getScreenX() - 250);
+                caption.setTranslateY(e.getScreenY() - 30);
                 caption.setText((long)dataValue.getPieValue() + " (" + String.valueOf(formatter.format(percentage)) + "%)");
                 mainPane.getChildren().add(caption);
             });
