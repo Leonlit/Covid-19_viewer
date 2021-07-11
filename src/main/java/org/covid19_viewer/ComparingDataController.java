@@ -128,6 +128,7 @@ public class ComparingDataController implements Initializable {
         if (dataCont.size() != 0) {
             Helper.changeCursorToLoading(mainScene);
             casesT.setSelected(true);
+            dailyCasesT.setSelected(true);
             recoveredT.setSelected(true);
             deathsT.setSelected(true);
             activeT.setSelected(true);
