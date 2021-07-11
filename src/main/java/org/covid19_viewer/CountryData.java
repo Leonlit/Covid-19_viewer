@@ -79,21 +79,39 @@ class CountriesData {
 }
 
 class CompareData extends CountriesData{
-    private ArrayList<Integer> allCases, allDeaths, allRecovered, allActive;
+    private ArrayList<Integer> allCases, allDailyCases, allDeaths, allRecovered, allActive;
     private ArrayList<String> dates;
             
     public CompareData (String country, String slug, ArrayList<Integer> allCases, ArrayList<Integer> allDeaths,
                         ArrayList<Integer> allRecovered, ArrayList<Integer> allActive, ArrayList<String> dates){
         super(country, slug);
         this.allCases = allCases;
+        calculateDaily();
         this.allDeaths = allDeaths;
         this.allRecovered = allRecovered;
         this.allActive = allActive;
         this.dates = dates;
     }
     
+    private void calculateDaily() {
+        allDailyCases = new ArrayList<Integer>();
+        int newCases = 0;
+        for (int idx = 0; idx< allCases.size();idx++) {
+            if (idx == 0) {
+                newCases = allCases.get(idx) - 0;
+            }else {
+                newCases = allCases.get(idx) - allCases.get(idx - 1);
+            }
+            allDailyCases.add(newCases);
+        }
+    }
+    
     public ArrayList<Integer> getAllCases () {
         return allCases;
+    }
+    
+    public ArrayList<Integer> getAllDailyCases() {
+        return allDailyCases;
     }
     
     public ArrayList<Integer> getAllDeaths () {

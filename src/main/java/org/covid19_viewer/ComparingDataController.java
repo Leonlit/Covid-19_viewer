@@ -14,7 +14,6 @@ import java.util.ResourceBundle;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
-import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -41,7 +40,7 @@ public class ComparingDataController implements Initializable {
     @FXML private Label firstCont, secondCont, thirdCont;
     @FXML private Button del1, del2, del3, hide1, hide2, hide3;
     @FXML private AnchorPane mainPane, graphPlace;
-    @FXML private CheckBox casesT, deathsT, recoveredT, activeT, logChart;
+    @FXML private CheckBox casesT, dailyCasesT, deathsT, recoveredT, activeT, logChart;
     @FXML private ScrollPane graphCont;
     @FXML ComboBox durationOfDataToShow;
     
@@ -146,19 +145,22 @@ public class ComparingDataController implements Initializable {
             try {
                 graphPlace.getChildren().clear();
                 String checked = "";
-                String legends[] = {"Total Cases", "Total Deaths", "Total Recovered", "Total Active"};
+                String legends[] = {"Total Cases", "Daily New Cases", "Total Deaths", "Total Recovered", "Total Active"};
 
                 if (casesT.isSelected()) {
                     checked += "0";
                 }
-                if (deathsT.isSelected()) {
+                if (dailyCasesT.isSelected()) {
                     checked += "1";
                 }
-                if (recoveredT.isSelected()) {
+                if (deathsT.isSelected()) {
                     checked += "2";
                 }
-                if(activeT.isSelected()) {
+                if (recoveredT.isSelected()) {
                     checked += "3";
+                }
+                if(activeT.isSelected()) {
+                    checked += "4";
                 }
                 if (checked.length() > 0) {
                     String checks[] = checked.split("");
@@ -190,12 +192,15 @@ public class ComparingDataController implements Initializable {
                                         options.add(parsedData.get(country).getAllCases());
                                         break;
                                     case 1:
-                                        options.add(parsedData.get(country).getAllDeaths());
+                                        options.add(parsedData.get(country).getAllDailyCases());
                                         break;
                                     case 2:
-                                        options.add(parsedData.get(country).getAllRecovered());
+                                        options.add(parsedData.get(country).getAllDeaths());
                                         break;
                                     case 3:
+                                        options.add(parsedData.get(country).getAllRecovered());
+                                        break;
+                                    case 4:
                                         options.add(parsedData.get(country).getAllActive());
                                         break;
                                 }

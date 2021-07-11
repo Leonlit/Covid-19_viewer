@@ -28,11 +28,11 @@
          </font>
       </Label>
       <Button layoutX="854.0" layoutY="13.0" mnemonicParsing="false" onAction="#drawAll" text="Show All" />
-      <CheckBox fx:id="casesT" layoutX="852.0" layoutY="84.0" mnemonicParsing="false" text="Cases Number" />
+      <CheckBox fx:id="casesT" layoutX="852.0" layoutY="61.0" mnemonicParsing="false" text="Cases Number" />
       <CheckBox fx:id="deathsT" layoutX="852.0" layoutY="112.0" mnemonicParsing="false" prefHeight="17.0" prefWidth="114.0" text="Deaths Number" />
       <CheckBox fx:id="recoveredT" layoutX="852.0" layoutY="138.0" mnemonicParsing="false" text="Recovered Number" />
       <CheckBox fx:id="activeT" layoutX="852.0" layoutY="165.0" mnemonicParsing="false" prefHeight="17.0" prefWidth="87.0" text="Active Cases" />
-      <Button layoutX="854.0" layoutY="47.0" mnemonicParsing="false" onAction="#constructGraph" text="Show Selected" />
+      <Button layoutX="939.0" layoutY="13.0" mnemonicParsing="false" onAction="#constructGraph" text="Show Selected" />
       <ScrollPane fx:id="graphCont" fitToHeight="true" fitToWidth="true" layoutX="29.0" layoutY="230.0" AnchorPane.bottomAnchor="26.0" AnchorPane.leftAnchor="29.0" AnchorPane.rightAnchor="29.0" AnchorPane.topAnchor="230.0">
          <content>
             <AnchorPane fx:id="graphPlace" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
@@ -46,5 +46,6 @@
       <Button fx:id="del3" layoutX="717.0" layoutY="153.0" mnemonicParsing="false" onAction="#removeData" text="delete" />
       <CheckBox fx:id="logChart" layoutX="852.0" layoutY="192.0" mnemonicParsing="false" prefHeight="17.0" prefWidth="114.0" text="logarithmic chart" />
       <ComboBox fx:id="durationOfDataToShow" layoutX="39.0" layoutY="197.0" prefWidth="150.0" promptText="duration" AnchorPane.leftAnchor="39.0" AnchorPane.topAnchor="197.0" />
+      <CheckBox fx:id="dailyCasesT" layoutX="852.0" layoutY="86.0" mnemonicParsing="false" text="Daily Cases Number" />
    </children>
 </AnchorPane>

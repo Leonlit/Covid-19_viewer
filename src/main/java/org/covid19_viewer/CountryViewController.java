@@ -317,7 +317,7 @@ public class CountryViewController implements Initializable {
 //        allActive = active;
         
         final ArrayList allData[] = {totalCases, totalNewCases, deaths, recovered, active};
-        final String seriesName[] = {"total Cases", "Total Deaths", "Total Recovered", "Total Active"};
+        final String seriesName[] = {"total Cases","Daily New Cases", "Total Deaths", "Total Recovered", "Total Active"};
         try {
             final CategoryAxis xAxis = new CategoryAxis();
             final NumberAxis yAxis = new NumberAxis();
