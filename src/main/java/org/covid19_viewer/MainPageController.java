@@ -221,7 +221,7 @@ public class MainPageController implements Initializable {
         chart.setStyle("-fx-padding:10px;-fx-insets:0px;");
         final Label caption = new Label("");
         chart.getData().forEach((dataValue) -> {
-            dataValue.getNode().addEventHandler(MouseEvent.MOUSE_PRESSED, (MouseEvent e) -> {
+            dataValue.getNode().addEventHandler(MouseEvent.MOUSE_ENTERED_TARGET, (MouseEvent e) -> {
                 DecimalFormat formatter = new DecimalFormat("#.00");
                 double percentage = dataValue.getPieValue()/total * 100;
                 caption.setTextFill(Color.BLUE);
@@ -230,15 +230,15 @@ public class MainPageController implements Initializable {
                                 "-fx-border-radius: 5px;" + 
                                 "-fx-background-radius: 5px;" +
                                 "-fx-background-color: rgba(255, 255, 255, 0.5);");
-                caption.setTranslateX(e.getSceneX() + 10);
+                caption.setTranslateX(e.getSceneX() - 50);
                 caption.setTranslateY(e.getSceneY() - 20);
-                caption.setText(String.valueOf(formatter.format(percentage)) + "%");
+                caption.setText((long)dataValue.getPieValue() + " (" + String.valueOf(formatter.format(percentage)) + "%)");
                 mainPane.getChildren().add(caption);
             });
         });
         
         chart.getData().forEach((dataValue) -> {
-            dataValue.getNode().addEventHandler(MouseEvent.MOUSE_RELEASED, (MouseEvent e) -> {
+            dataValue.getNode().addEventHandler(MouseEvent.MOUSE_EXITED_TARGET, (MouseEvent e) -> {
                 mainPane.getChildren().remove(caption);
             });
         });
