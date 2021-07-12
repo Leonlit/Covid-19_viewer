@@ -126,7 +126,6 @@ public class ComparingDataController implements Initializable {
     @FXML
     private void drawAll () {
         if (dataCont.size() != 0) {
-            Helper.changeCursorToLoading(mainScene);
             casesT.setSelected(true);
             dailyCasesT.setSelected(true);
             recoveredT.setSelected(true);
@@ -139,7 +138,6 @@ public class ComparingDataController implements Initializable {
     @FXML
     private void constructGraph () {
         if (dataCont.size() != 0) {
-            Helper.changeCursorToLoading(mainScene);
             if (!graphPlace.getChildren().isEmpty()) {
                 graphPlace.getChildren().clear();
             }

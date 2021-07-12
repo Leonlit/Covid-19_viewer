@@ -1,18 +1,9 @@
 package org.covid19_viewer;
 
 import java.util.ArrayList;
-import javafx.scene.Cursor;
-import javafx.scene.Scene;
 import javafx.scene.control.CheckBox;
 
 public class Helper {
-    public static void changeCursorToNormal (Scene mainScene) {
-        mainScene.setCursor(Cursor.DEFAULT);
-    }
-            
-    public static void changeCursorToLoading (Scene mainScene) {
-        mainScene.setCursor(Cursor.WAIT);
-    }
     
     public static int getDataConstrainer (ArrayList list, int constraints) {
         if (constraints == 0) return 0;

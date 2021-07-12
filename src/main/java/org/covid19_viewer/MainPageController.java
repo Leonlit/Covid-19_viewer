@@ -119,7 +119,6 @@ public class MainPageController implements Initializable {
                             Parent root = loader.load();
                             CountryViewController controller = loader.getController();
                             Scene countryView = new Scene(root);
-                            Helper.changeCursorToLoading(countryView);
                             controller.setupData(rowData, countryView);
                             URL cssFile = getClass().getResource("index.css");
                             String css = cssFile.toExternalForm(); 

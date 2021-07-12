@@ -158,7 +158,6 @@ public class CountryViewController implements Initializable {
                 setupValues();
                 setupCountryGraph();
                 showDetailedData(0);
-                Helper.changeCursorToNormal(mainScene);  
             }
         });
     }
@@ -419,7 +418,6 @@ public class CountryViewController implements Initializable {
                     });
                 }
             }
-            Helper.changeCursorToNormal(mainScene);
             chart.setMinWidth(1400);
             graphCont.setMinViewportWidth(1400);
             graphPlace.getChildren().clear();
