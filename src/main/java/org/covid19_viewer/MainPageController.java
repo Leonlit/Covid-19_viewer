@@ -11,6 +11,8 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.IntStream;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -38,7 +40,6 @@ import org.json.JSONObject;
 
 public class MainPageController implements Initializable {
     
-    private int timeOut = 0;
     private ObservableList<CountryData> dataList;
     
     @FXML
@@ -64,6 +65,28 @@ public class MainPageController implements Initializable {
     @FXML private TableColumn<CountryData, Integer> TotalRecovered;
     
     private ArrayList<String> countriesName = new ArrayList<String>();
+    
+    @FXML
+    private void openComparingWindow() {
+        try {
+            Stage compare = new Stage();
+            FXMLLoader Cloader = new FXMLLoader(getClass().getResource("ComparingData.fxml"));
+            Parent Croot = Cloader.load();
+            ComparingDataController controller = Cloader.getController();
+
+            Scene compareView = new Scene(Croot);
+            URL cssFile = getClass().getResource("index.css");
+            String css = cssFile.toExternalForm(); 
+            compareView.getStylesheets().add(css);
+            controller.storeScene(compareView);
+            compare.setScene(compareView);
+            compare.setTitle("Covid-19 Viewer - Countries Data Comparer");
+            compare.setMaximized(true);
+            compare.show();
+        } catch (IOException ex) {
+            Logger.getLogger(MainPageController.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
     
     @FXML
     private void searchCountryName () {
@@ -103,6 +126,7 @@ public class MainPageController implements Initializable {
                             countryView.getStylesheets().add(css);
                             cont.setScene(countryView);
                             cont.setTitle("Covid-19 Viewer - Data for " + rowData.getCountryName());
+                            cont.setMaximized(true);
                             cont.show();
                         } catch (IOException ex) {
                             AppLogger.logging(ex.getMessage(), 3);
@@ -198,7 +222,6 @@ public class MainPageController implements Initializable {
             drawPieGraph(Arrays.copyOfRange(globalStats, 0, 3), Arrays.copyOfRange(globalLegends, 0, 3), newChart, mainPane);
             drawPieGraph(Arrays.copyOfRange(globalStats, 4, 7), Arrays.copyOfRange(globalLegends, 4, 7), totalChart, mainPane);
             updateGlobalCounter(globalStats);
-            timeOut = 0;
         }catch (JSONException ex) {
             AppLogger.logging("File Integrity changed, requesting new data from server", 1);
             System.out.println("File Integrity changed, requesting new data from server");
