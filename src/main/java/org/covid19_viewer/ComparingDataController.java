@@ -213,14 +213,12 @@ public class ComparingDataController implements Initializable {
                                         break;
                                     case 4:
                                         options.add(parsedData.get(country).getAllDailyRecovered());
-                                        System.out.println(parsedData.get(country).getAllDailyRecovered());
                                         break;
                                     case 5:
                                         options.add(parsedData.get(country).getAllDeaths());
                                         break;
                                     case 6:
                                         options.add(parsedData.get(country).getAllDailyDeaths());
-                                        System.out.println(parsedData.get(country).getAllDailyDeaths());
                                         break;
                                     
                                 }
