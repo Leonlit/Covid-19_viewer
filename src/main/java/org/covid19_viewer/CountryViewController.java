@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.time.LocalDate;
 import java.util.ResourceBundle;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -39,7 +40,7 @@ import org.json.JSONException;
 public class CountryViewController implements Initializable {
     
     private CountryData data;
-    private ArrayList<Integer> allCases, allNewCases, allDeaths, allRecovered, allActive;
+    private ArrayList<Integer> allCases, allNewCases, allNewRecovered, allDeaths, allRecovered, allActive, allNewDeaths;
     private ArrayList<String> dates;
     private ArrayList<Integer> optionsMaxValue = new ArrayList<Integer>();
     private int constraints = 0;
@@ -47,7 +48,10 @@ public class CountryViewController implements Initializable {
     private Scene mainScene;
     private static boolean isHovered = false;
     
-    @FXML private CheckBox totalCasesT, deathsT, recoveredT, activeT, newCasesT, logChart;
+    private final String seriesName[] = {"total Cases", "Daily New Cases", "Total Active", "Total Recovered",
+                                        "Daily New Recovered", "Total Deaths", "Daily New Deaths"};
+    
+    @FXML private CheckBox totalCasesT, deathsT, recoveredT, activeT, newCasesT, newRecoveredT, newDeathsT, logChart;
     
     @FXML private Label newCase, newDeath, newRecovered, 
           totalCase, activeCase, totalDeath, totalRecovered, countryName, date;
@@ -62,7 +66,6 @@ public class CountryViewController implements Initializable {
         optionsMaxValue.clear();
         graphPlace.getChildren().clear();
         String checked = "";
-        String legends[] = {"Total Cases", "Total New Daily Cases", "Total Deaths", "Total Recovered", "Total Active"};
         
         if (totalCasesT.isSelected()) {
             checked += "0";
@@ -70,15 +73,22 @@ public class CountryViewController implements Initializable {
         if (newCasesT.isSelected()) {
             checked += "1";
         }
-        if (deathsT.isSelected()) {
+        if(activeT.isSelected()) {
             checked += "2";
         }
         if (recoveredT.isSelected()) {
             checked += "3";
         }
-        if(activeT.isSelected()) {
+        if (newRecoveredT.isSelected()) {
             checked += "4";
         }
+        if (deathsT.isSelected()) {
+            checked += "5";
+        }
+        if (newDeathsT.isSelected()) {
+            checked += "6";
+        }
+        
         if (checked.length() > 0) {
             String checks[] = checked.split("");
             int option[] = new int[checks.length];
@@ -96,13 +106,19 @@ public class CountryViewController implements Initializable {
                         options.add(allNewCases);
                         break;
                     case 2:
-                        options.add(allDeaths);
+                        options.add(allActive);
                         break;
                     case 3:
                         options.add(allRecovered);
                         break;
                     case 4:
-                        options.add(allActive);
+                        options.add(allNewRecovered);
+                        break;
+                    case 5:
+                        options.add(allDeaths);
+                        break;
+                    case 6:
+                        options.add(allNewDeaths);
                         break;
                 }
             }
@@ -112,7 +128,7 @@ public class CountryViewController implements Initializable {
             LineChart chart = new LineChart(xAxis,yAxis);
             String title = "";
             for (int x = 0;x<options.size();x++) {
-                title += legends[Integer.parseInt(checks[x])] + ", ";
+                title += seriesName[Integer.parseInt(checks[x])] + ", ";
             }
             title = title.substring(0, title.length() - 2);
             title = data.getCountryName() + " Data - " + title;
@@ -123,7 +139,7 @@ public class CountryViewController implements Initializable {
 
             for (int line = 0; line < options.size();line++) {
                 Series data = new Series();
-                data.setName(legends[Integer.parseInt(checks[line])]);
+                data.setName(seriesName[Integer.parseInt(checks[line])]);
                 int max = Collections.max(options.get(line));
                 optionsMaxValue.add(max);
                 int seriesSize = options.get(line).size();
@@ -141,7 +157,7 @@ public class CountryViewController implements Initializable {
     private void showAllBack () {
         checkAllSettings();
         graphPlace.getChildren().clear();
-        drawInitialLineChart(allCases, allNewCases, allDeaths, allRecovered, allActive, dates, data.getCountryName());
+        drawInitialLineChart(data.getCountryName());
     }
     
     @Override
@@ -192,8 +208,11 @@ public class CountryViewController implements Initializable {
         totalCasesT.setSelected(true);
         newCasesT.setSelected(true);
         recoveredT.setSelected(true);
+        newRecoveredT.setSelected(true);
         deathsT.setSelected(true);
+        newDeathsT.setSelected(true);
         activeT.setSelected(true);
+        
     }
     
     private void showDetailedData (int forced) {
@@ -278,6 +297,8 @@ public class CountryViewController implements Initializable {
             allDeaths = new ArrayList<Integer>();
             allRecovered = new ArrayList<Integer>();
             allActive = new ArrayList<Integer>();
+            allNewDeaths = new ArrayList<Integer>();
+            allNewRecovered = new ArrayList<Integer>();
             dates = new ArrayList<String>();
 
             JSONArray data = new JSONArray(result);
@@ -287,17 +308,24 @@ public class CountryViewController implements Initializable {
                 allRecovered.add(data.getJSONObject(x).getInt("Recovered"));
                 allActive.add(data.getJSONObject(x).getInt("Active"));
                 dates.add(data.getJSONObject(x).getString("Date").substring(0,10));
-                int newCases = 0;
-                if (x == 0) {
-                    newCases = allCases.get(x) - 0;
-                }else {
-                    newCases = allCases.get(x) - allCases.get(x - 1);
-                }
-                allNewCases.add(newCases);
+                allNewCases.add(getDailyDataFromCumulativeData(allCases, x));
+                allNewDeaths.add(getDailyDataFromCumulativeData(allDeaths, x));
+                allNewRecovered.add(getDailyDataFromCumulativeData(allRecovered, x));
+            }
+            
+            if (!isNewestData(this.data)) {
+                CountryData appendData = this.data;
+                allCases.add(appendData.getTotalCases());
+                allDeaths.add(appendData.getTotalDeaths());
+                allRecovered.add(appendData.getTotalRecovered());
+                allActive.add(appendData.getActiveCases());
+                dates.add(LocalDate.parse(dates.get(dates.size() - 1)).plusDays(1).toString());
+                allNewCases.add(appendData.getNewCases());
+                allNewDeaths.add(appendData.getNewDeaths());
+                allNewRecovered.add(appendData.getNewRecovered());
             }
             String country = data.getJSONObject(0).getString("Country");
-            
-            drawInitialLineChart(allCases, allNewCases, allDeaths, allRecovered, allActive, dates, country);            
+            drawInitialLineChart(country);            
         }catch (JSONException ex) {
             AppLogger.logging("File Integrity changed, requesting new data from server", 1);
             System.out.println("File Integrity changed, requesting new data from server");
@@ -308,16 +336,33 @@ public class CountryViewController implements Initializable {
         }
     }
     
-    private void drawInitialLineChart (ArrayList<Integer> totalCases, ArrayList<Integer> totalNewCases, ArrayList<Integer> deaths, ArrayList<Integer> recovered,
-                                        ArrayList<Integer> active, ArrayList<String> legends, String countryName) {
+    private boolean isNewestData (CountryData data) {
+        return (
+            data.getTotalCases() == this.allCases.get(this.allCases.size() - 1)
+            && data.getNewCases()== this.allNewCases.get(this.allNewCases.size() - 1)
+            && data.getActiveCases() == this.allActive.get(this.allActive.size() - 1)
+            && data.getNewCases()== this.allRecovered.get(this.allRecovered.size() - 1)
+            && data.getNewCases()== this.allNewRecovered.get(this.allNewRecovered.size() - 1)
+            && data.getNewCases()== this.allDeaths.get(this.allDeaths.size() - 1)
+            && data.getNewCases()== this.allNewDeaths.get(this.allNewDeaths.size() - 1)
+        );
+    }
+    
+    private int getDailyDataFromCumulativeData(ArrayList<Integer> arr, int idx ) {
+        int newCases = 0;
+        if (idx == 0) {
+            newCases = arr.get(idx);
+        }else {
+            newCases = arr.get(idx) - arr.get(idx - 1);
+        }
+        return newCases;
+    }
+    
+    private void drawInitialLineChart (String countryName) {
         checkAllSettings();
-//        allCases = totalCases;
-//        allDeaths = deaths;
-//        allRecovered = recovered;
-//        allActive = active;
         
-        final ArrayList allData[] = {totalCases, totalNewCases, deaths, recovered, active};
-        final String seriesName[] = {"total Cases","Daily New Cases", "Total Deaths", "Total Recovered", "Total Active"};
+        final ArrayList allData[] = {allCases, allNewCases, allActive, allRecovered, 
+                                        allNewRecovered, allDeaths, allNewDeaths };
         try {
             final CategoryAxis xAxis = new CategoryAxis();
             final NumberAxis yAxis = new NumberAxis();
@@ -337,7 +382,7 @@ public class CountryViewController implements Initializable {
                     int max = Collections.max(temp);
                     optionsMaxValue.add(max);
                     double value = Helper.getBackLogValueIfSelected(temp.get(x), max, logChart);
-                    series.getData().add(new XYChart.Data(legends.get(x), Helper.isLogChartSelected(logChart) ? value : (int)value ));
+                    series.getData().add(new XYChart.Data(dates.get(x), Helper.isLogChartSelected(logChart) ? value : (int)value ));
                 }
                 chart.getData().add(series);
             }
