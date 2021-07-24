@@ -79,31 +79,34 @@ class CountriesData {
 }
 
 class CompareData extends CountriesData{
-    private ArrayList<Integer> allCases, allDailyCases, allDeaths, allRecovered, allActive;
+    private ArrayList<Integer> allCases, allDailyCases, allActive, allRecovered, allDailyRecovered, allDeaths, allDailyDeaths;
     private ArrayList<String> dates;
             
     public CompareData (String country, String slug, ArrayList<Integer> allCases, ArrayList<Integer> allDeaths,
                         ArrayList<Integer> allRecovered, ArrayList<Integer> allActive, ArrayList<String> dates){
         super(country, slug);
         this.allCases = allCases;
-        calculateDaily();
+        this.allDailyCases = calculateDaily(allCases);
+        this.allDailyRecovered = calculateDaily(allRecovered);
+        this.allDailyDeaths = calculateDaily(allDeaths);
         this.allDeaths = allDeaths;
         this.allRecovered = allRecovered;
         this.allActive = allActive;
         this.dates = dates;
     }
     
-    private void calculateDaily() {
-        allDailyCases = new ArrayList<Integer>();
-        int newCases = 0;
-        for (int idx = 0; idx< allCases.size();idx++) {
+    private ArrayList<Integer> calculateDaily(ArrayList<Integer> parents) {
+        ArrayList<Integer> arr = new ArrayList<Integer>();
+        for (int idx = 0; idx< parents.size();idx++) {
+            int newCases = 0;
             if (idx == 0) {
-                newCases = allCases.get(idx) - 0;
+                newCases = parents.get(idx);
             }else {
-                newCases = allCases.get(idx) - allCases.get(idx - 1);
+                newCases = parents.get(idx) - parents.get(idx - 1);
             }
-            allDailyCases.add(newCases);
+            arr.add(newCases);
         }
+        return arr;
     }
     
     public ArrayList<Integer> getAllCases () {
@@ -112,6 +115,14 @@ class CompareData extends CountriesData{
     
     public ArrayList<Integer> getAllDailyCases() {
         return allDailyCases;
+    }
+    
+    public ArrayList<Integer> getAllDailyRecovered() {
+        return allDailyRecovered;
+    }
+    
+    public ArrayList<Integer> getAllDailyDeaths() {
+        return allDailyDeaths;
     }
     
     public ArrayList<Integer> getAllDeaths () {

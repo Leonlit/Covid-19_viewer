@@ -40,7 +40,7 @@ public class ComparingDataController implements Initializable {
     @FXML private Label firstCont, secondCont, thirdCont;
     @FXML private Button del1, del2, del3, hide1, hide2, hide3;
     @FXML private AnchorPane mainPane, graphPlace;
-    @FXML private CheckBox casesT, dailyCasesT, deathsT, recoveredT, activeT, logChart;
+    @FXML private CheckBox casesT, dailyCasesT, deathsT, recoveredT, activeT, logChart, dailyDeathsT, dailyRecoveredT;
     @FXML private ScrollPane graphCont;
     @FXML ComboBox durationOfDataToShow;
     
@@ -128,9 +128,11 @@ public class ComparingDataController implements Initializable {
         if (dataCont.size() != 0) {
             casesT.setSelected(true);
             dailyCasesT.setSelected(true);
-            recoveredT.setSelected(true);
-            deathsT.setSelected(true);
             activeT.setSelected(true);
+            recoveredT.setSelected(true);
+            dailyRecoveredT.setSelected(true);
+            deathsT.setSelected(true);
+            dailyDeathsT.setSelected(true) ;
             constructGraph();
         }
     }
@@ -144,7 +146,10 @@ public class ComparingDataController implements Initializable {
             try {
                 graphPlace.getChildren().clear();
                 String checked = "";
-                String legends[] = {"Total Cases", "Daily New Cases", "Total Deaths", "Total Recovered", "Total Active"};
+                String legends[] = {
+                    "Total Cases", "Daily New Cases", "Total Active", 
+                    "Total Recovered", "Daily New Recovered", "Total Deaths", "Daily New Deaths"
+                };
 
                 if (casesT.isSelected()) {
                     checked += "0";
@@ -152,15 +157,22 @@ public class ComparingDataController implements Initializable {
                 if (dailyCasesT.isSelected()) {
                     checked += "1";
                 }
-                if (deathsT.isSelected()) {
+                if(activeT.isSelected()) {
                     checked += "2";
                 }
                 if (recoveredT.isSelected()) {
                     checked += "3";
                 }
-                if(activeT.isSelected()) {
+                if (dailyRecoveredT.isSelected()) {
                     checked += "4";
                 }
+                if (deathsT.isSelected()) {
+                    checked += "5";
+                }
+                if (dailyDeathsT.isSelected()) {
+                    checked += "6";
+                }
+                
                 if (checked.length() > 0) {
                     String checks[] = checked.split("");
                     int option[] = new int[checks.length];
@@ -194,14 +206,23 @@ public class ComparingDataController implements Initializable {
                                         options.add(parsedData.get(country).getAllDailyCases());
                                         break;
                                     case 2:
-                                        options.add(parsedData.get(country).getAllDeaths());
+                                        options.add(parsedData.get(country).getAllActive());
                                         break;
                                     case 3:
                                         options.add(parsedData.get(country).getAllRecovered());
                                         break;
                                     case 4:
-                                        options.add(parsedData.get(country).getAllActive());
+                                        options.add(parsedData.get(country).getAllDailyRecovered());
+                                        System.out.println(parsedData.get(country).getAllDailyRecovered());
                                         break;
+                                    case 5:
+                                        options.add(parsedData.get(country).getAllDeaths());
+                                        break;
+                                    case 6:
+                                        options.add(parsedData.get(country).getAllDailyDeaths());
+                                        System.out.println(parsedData.get(country).getAllDailyDeaths());
+                                        break;
+                                    
                                 }
                             }
                         }

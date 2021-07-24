@@ -27,15 +27,15 @@
             <Font name="Gill Sans MT Bold Italic" size="18.0" />
          </font>
       </Label>
-      <Button layoutX="854.0" layoutY="13.0" mnemonicParsing="false" onAction="#drawAll" text="Show All" />
-      <CheckBox fx:id="casesT" layoutX="852.0" layoutY="61.0" mnemonicParsing="false" text="Cases Number" />
-      <CheckBox fx:id="deathsT" layoutX="852.0" layoutY="112.0" mnemonicParsing="false" prefHeight="17.0" prefWidth="114.0" text="Deaths Number" />
-      <CheckBox fx:id="recoveredT" layoutX="852.0" layoutY="138.0" mnemonicParsing="false" text="Recovered Number" />
-      <CheckBox fx:id="activeT" layoutX="852.0" layoutY="165.0" mnemonicParsing="false" prefHeight="17.0" prefWidth="87.0" text="Active Cases" />
-      <Button layoutX="939.0" layoutY="13.0" mnemonicParsing="false" onAction="#constructGraph" text="Show Selected" />
+      <Button layoutX="994.0" layoutY="83.0" mnemonicParsing="false" onAction="#drawAll" text="Show All" />
+      <CheckBox fx:id="casesT" layoutX="821.0" layoutY="20.0" mnemonicParsing="false" text="Total Cases" />
+      <CheckBox fx:id="deathsT" layoutX="821.0" layoutY="145.0" mnemonicParsing="false" prefHeight="17.0" prefWidth="114.0" text="Total Deaths" />
+      <CheckBox fx:id="dailyRecoveredT" layoutX="821.0" layoutY="118.0" mnemonicParsing="false" text="Daily New Recovered" />
+      <CheckBox fx:id="activeT" layoutX="821.0" layoutY="69.0" mnemonicParsing="false" prefHeight="17.0" prefWidth="87.0" text="Active Cases" />
+      <Button layoutX="978.0" layoutY="36.0" mnemonicParsing="false" onAction="#constructGraph" text="Show Selected" />
       <ScrollPane fx:id="graphCont" fitToHeight="true" fitToWidth="true" layoutX="29.0" layoutY="230.0" AnchorPane.bottomAnchor="26.0" AnchorPane.leftAnchor="29.0" AnchorPane.rightAnchor="29.0" AnchorPane.topAnchor="230.0">
          <content>
-            <AnchorPane fx:id="graphPlace" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+            <AnchorPane fx:id="graphPlace" prefHeight="401.0" prefWidth="1040.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
          </content>
       </ScrollPane>
       <Button fx:id="hide1" layoutX="651.0" layoutY="36.0" mnemonicParsing="false" onAction="#hideData" text="Hide" />
@@ -44,8 +44,10 @@
       <Button fx:id="del1" layoutX="717.0" layoutY="36.0" mnemonicParsing="false" onAction="#removeData" text="delete" />
       <Button fx:id="del2" layoutX="717.0" layoutY="95.0" mnemonicParsing="false" onAction="#removeData" text="delete" />
       <Button fx:id="del3" layoutX="717.0" layoutY="153.0" mnemonicParsing="false" onAction="#removeData" text="delete" />
-      <CheckBox fx:id="logChart" layoutX="852.0" layoutY="192.0" mnemonicParsing="false" prefHeight="17.0" prefWidth="114.0" text="logarithmic chart" />
-      <ComboBox fx:id="durationOfDataToShow" layoutX="39.0" layoutY="197.0" prefWidth="150.0" promptText="duration" AnchorPane.leftAnchor="39.0" AnchorPane.topAnchor="197.0" />
-      <CheckBox fx:id="dailyCasesT" layoutX="852.0" layoutY="86.0" mnemonicParsing="false" text="Daily Cases Number" />
+      <CheckBox fx:id="logChart" layoutX="821.0" layoutY="199.0" mnemonicParsing="false" prefHeight="17.0" prefWidth="114.0" text="logarithmic chart" />
+      <ComboBox fx:id="durationOfDataToShow" layoutX="39.0" layoutY="196.0" prefWidth="150.0" promptText="duration" AnchorPane.leftAnchor="39.0" AnchorPane.topAnchor="196.0" />
+      <CheckBox fx:id="dailyCasesT" layoutX="821.0" layoutY="44.0" mnemonicParsing="false" text="Daily New Cases" />
+      <CheckBox fx:id="recoveredT" layoutX="821.0" layoutY="94.0" mnemonicParsing="false" text="Total Recovered" />
+      <CheckBox fx:id="dailyDeathsT" layoutX="821.0" layoutY="172.0" mnemonicParsing="false" prefHeight="17.0" prefWidth="134.0" text="Daily New Deaths" />
    </children>
 </AnchorPane>
