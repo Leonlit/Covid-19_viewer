@@ -26,11 +26,13 @@ import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.RadioButton;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.AnchorPane;
 import javafx.util.StringConverter;
+import javafx.scene.control.ToggleGroup;
 import org.json.JSONArray;
 import org.json.JSONException;
 
@@ -40,7 +42,8 @@ public class ComparingDataController implements Initializable {
     @FXML private Label firstCont, secondCont, thirdCont;
     @FXML private Button del1, del2, del3, hide1, hide2, hide3;
     @FXML private AnchorPane mainPane, graphPlace;
-    @FXML private CheckBox casesT, dailyCasesT, deathsT, recoveredT, activeT, logChart, dailyDeathsT, dailyRecoveredT;
+    @FXML private CheckBox logChart;
+    @FXML private RadioButton casesT, dailyCasesT, deathsT, recoveredT, activeT, dailyDeathsT, dailyRecoveredT;
     @FXML private ScrollPane graphCont;
     @FXML ComboBox durationOfDataToShow;
     
@@ -54,6 +57,14 @@ public class ComparingDataController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
+        ToggleGroup radioGroup = new ToggleGroup();
+        casesT.setToggleGroup(radioGroup);
+        dailyCasesT.setToggleGroup(radioGroup);
+        activeT.setToggleGroup(radioGroup);
+        recoveredT.setToggleGroup(radioGroup);
+        dailyRecoveredT.setToggleGroup(radioGroup);
+        deathsT.setToggleGroup(radioGroup);
+        dailyDeathsT.setToggleGroup(radioGroup);
         getCountriesName(0);
     }
     
@@ -124,20 +135,6 @@ public class ComparingDataController implements Initializable {
     }
     
     @FXML
-    private void drawAll () {
-        if (dataCont.size() != 0) {
-            casesT.setSelected(true);
-            dailyCasesT.setSelected(true);
-            activeT.setSelected(true);
-            recoveredT.setSelected(true);
-            dailyRecoveredT.setSelected(true);
-            deathsT.setSelected(true);
-            dailyDeathsT.setSelected(true) ;
-            constructGraph();
-        }
-    }
-    
-    @FXML
     private void constructGraph () {
         if (dataCont.size() != 0) {
             if (!graphPlace.getChildren().isEmpty()) {
@@ -145,42 +142,35 @@ public class ComparingDataController implements Initializable {
             }
             try {
                 graphPlace.getChildren().clear();
-                String checked = "";
+                int checked = -1;
                 String legends[] = {
                     "Total Cases", "Daily New Cases", "Total Active", 
                     "Total Recovered", "Daily New Recovered", "Total Deaths", "Daily New Deaths"
                 };
 
                 if (casesT.isSelected()) {
-                    checked += "0";
+                    checked = 0;
                 }
                 if (dailyCasesT.isSelected()) {
-                    checked += "1";
+                    checked = 1;
                 }
                 if(activeT.isSelected()) {
-                    checked += "2";
+                    checked = 2;
                 }
                 if (recoveredT.isSelected()) {
-                    checked += "3";
+                    checked = 3;
                 }
                 if (dailyRecoveredT.isSelected()) {
-                    checked += "4";
+                    checked = 4;
                 }
                 if (deathsT.isSelected()) {
-                    checked += "5";
+                    checked = 5;
                 }
                 if (dailyDeathsT.isSelected()) {
-                    checked += "6";
+                    checked = 6;
                 }
                 
-                if (checked.length() > 0) {
-                    String checks[] = checked.split("");
-                    int option[] = new int[checks.length];
-                    int counter = 0;
-                    for (String i : checks) {
-                        option[counter++] = Integer.parseInt(i);
-                    }
-
+                if (checked > -1) {
                     ArrayList<CountriesData> countryList = new ArrayList<CountriesData>();
                     countryLegends.clear();
                     if (!firstCont.isDisabled() && !firstCont.getText().equals("")) {
@@ -197,31 +187,29 @@ public class ComparingDataController implements Initializable {
                     ArrayList<ArrayList<Integer>> options = new ArrayList<ArrayList<Integer>>();
                     try {
                         for (int country = 0; country < parsedData.size();country++) {
-                            for (int x = 0 ; x< option.length;x++) {
-                               switch (option[x]) {
-                                    case 0:
-                                        options.add(parsedData.get(country).getAllCases());
-                                        break;
-                                    case 1:
-                                        options.add(parsedData.get(country).getAllDailyCases());
-                                        break;
-                                    case 2:
-                                        options.add(parsedData.get(country).getAllActive());
-                                        break;
-                                    case 3:
-                                        options.add(parsedData.get(country).getAllRecovered());
-                                        break;
-                                    case 4:
-                                        options.add(parsedData.get(country).getAllDailyRecovered());
-                                        break;
-                                    case 5:
-                                        options.add(parsedData.get(country).getAllDeaths());
-                                        break;
-                                    case 6:
-                                        options.add(parsedData.get(country).getAllDailyDeaths());
-                                        break;
-                                    
-                                }
+                           switch (checked) {
+                                case 0:
+                                    options.add(parsedData.get(country).getAllCases());
+                                    break;
+                                case 1:
+                                    options.add(parsedData.get(country).getAllDailyCases());
+                                    break;
+                                case 2:
+                                    options.add(parsedData.get(country).getAllActive());
+                                    break;
+                                case 3:
+                                    options.add(parsedData.get(country).getAllRecovered());
+                                    break;
+                                case 4:
+                                    options.add(parsedData.get(country).getAllDailyRecovered());
+                                    break;
+                                case 5:
+                                    options.add(parsedData.get(country).getAllDeaths());
+                                    break;
+                                case 6:
+                                    options.add(parsedData.get(country).getAllDailyDeaths());
+                                    break;
+
                             }
                         }
 
@@ -242,19 +230,17 @@ public class ComparingDataController implements Initializable {
                         chart.setTitle("Comparing Data - " + title);
 
                         for (int country = 0; country < parsedData.size();country++) {
-                            for (int line=0;line<checks.length;line++) {
-                                int max = Collections.max(options.get(line + (country * checks.length)));
-                                optionsMaxValue.add(max);
-                                XYChart.Series data = new XYChart.Series();
-                                data.setName(parsedData.get(country).getCountryName() + "." + legends[Integer.parseInt(checks[line])]);
-                                ArrayList<Integer> currItem = options.get(line + (country * checks.length));
-                                for (int x = Helper.getDataConstrainer(currItem, constraints); x < currItem.size();x++) {
-                                    double value = Helper.getBackLogValueIfSelected(options.get(line + (country * checks.length)).get(x), max, logChart);
-                                    String date = parsedData.get(country).getAllDates().get(x);
-                                    data.getData().add(new XYChart.Data(date, Helper.isLogChartSelected(logChart) ? value : (int)value ));
-                                }
-                                chart.getData().add(data);
+                            int max = Collections.max(options.get(country));
+                            optionsMaxValue.add(max);
+                            XYChart.Series data = new XYChart.Series();
+                            data.setName(parsedData.get(country).getCountryName() + "." + legends[checked]);
+                            ArrayList<Integer> currItem = options.get(country);
+                            for (int x = Helper.getDataConstrainer(currItem, constraints); x < currItem.size();x++) {
+                                double value = Helper.getBackLogValueIfSelected(options.get(country).get(x), max, logChart);
+                                String date = parsedData.get(country).getAllDates().get(x);
+                                data.getData().add(new XYChart.Data(date, Helper.isLogChartSelected(logChart) ? value : (int)value ));
                             }
+                            chart.getData().add(data);
                         }
 
                         CountryViewController.setupLineChart(chart, optionsMaxValue, logChart, 
